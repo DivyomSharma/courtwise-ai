@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown } from 'lucide-react';
+import { FileText, Star } from 'lucide-react';
 
 interface CaseNoteProps {
+  id?: string;
   title: string;
   citation: string;
   court: string;
@@ -14,33 +15,60 @@ interface CaseNoteProps {
   summary: string;
 }
 
-const CaseNote = ({ title, citation, court, date, category, summary }: CaseNoteProps) => {
+const CaseNote = ({ 
+  id = 'default-case',
+  title, 
+  citation, 
+  court, 
+  date, 
+  category, 
+  summary 
+}: CaseNoteProps) => {
+  // Generate a URL-friendly ID from the title if none is provided
+  const caseId = id === 'default-case' 
+    ? title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+    : id;
+
   return (
-    <Card className="card-hover">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-serif">{title}</CardTitle>
-            <CardDescription className="text-sm">{citation}</CardDescription>
-          </div>
-          <Badge className="ml-2">{category}</Badge>
+    <div className="bg-white rounded-lg shadow-sm border border-border p-4 transition-all hover:shadow-md">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-serif font-semibold line-clamp-2">{title}</h3>
+          <p className="text-xs text-muted-foreground">{citation}</p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-xs mb-3 flex items-center">
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500">
+          <Star className="h-4 w-4" />
+          <span className="sr-only">Favorite</span>
+        </Button>
+      </div>
+      
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs">
           <span className="text-muted-foreground">{court}</span>
-          <span className="mx-1.5">•</span>
+          <span className="mx-1">•</span>
           <span className="text-muted-foreground">{date}</span>
         </div>
-        <p className="text-sm line-clamp-3">{summary}</p>
-      </CardContent>
-      <CardFooter className="pt-0">
-        <Button size="sm" variant="outline" className="text-xs ml-auto">
-          <FileDown className="mr-1 h-3 w-3" />
-          Export Notes
+        <Badge variant="outline" className="text-xs">{category}</Badge>
+      </div>
+      
+      <p className="text-sm line-clamp-3 mb-4">{summary}</p>
+      
+      <div className="flex items-center justify-between">
+        <Button size="sm" variant="outline" className="text-xs">
+          <FileText className="h-3 w-3 mr-1" />
+          Export Note
         </Button>
-      </CardFooter>
-    </Card>
+        
+        <Button 
+          size="sm" 
+          variant="default" 
+          asChild
+          className="text-xs"
+        >
+          <Link to={`/case/${caseId}`}>View Case</Link>
+        </Button>
+      </div>
+    </div>
   );
 };
 

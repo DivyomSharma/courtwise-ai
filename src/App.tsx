@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import LandmarkCases from "./pages/LandmarkCases";
+import CaseDetail from "./pages/CaseDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/landmark-cases" element={<LandmarkCases />} />
+          <Route path="/case/:caseId" element={<CaseDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

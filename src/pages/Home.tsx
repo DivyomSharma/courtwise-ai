@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { MenuIcon } from 'lucide-react';
+import { MenuIcon, Search, ArrowUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import SearchBar from '@/components/SearchBar';
 import LatestCases from '@/components/LatestCases';
 import LegalNews from '@/components/LegalNews';
+import PromptSearch from '@/components/PromptSearch';
 
 const Home = () => {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
@@ -37,9 +38,11 @@ const Home = () => {
           
           <div className="flex flex-1">
             <div className="w-full lg:w-3/4 p-4 md:p-6">
-              <div className="mb-8">
-                <h2 className="text-2xl font-serif mb-4">Welcome to Courtwise AI</h2>
-                <p className="text-muted-foreground">Access a comprehensive library of Indian court cases and judgments with professional case notes and export capabilities.</p>
+              <div className="mb-8 text-center">
+                <h2 className="text-2xl md:text-3xl font-serif mb-2">Welcome to Courtwise AI</h2>
+                <p className="text-muted-foreground mb-8">Access a comprehensive library of Indian court cases and judgments with professional case notes and export capabilities.</p>
+                
+                <PromptSearch />
               </div>
               
               <div className="mb-8">
