@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { MenuIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import SearchBar from '@/components/SearchBar';
