@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -22,11 +21,9 @@ const Home = () => {
         <main className="flex-1 flex flex-col">
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-              <SidebarTrigger>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <MenuIcon className="h-5 w-5" />
-                </Button>
-              </SidebarTrigger>
+              <div className="md:hidden">
+                <SidebarTrigger />
+              </div>
               
               <h1 className="text-2xl md:text-3xl font-serif font-bold text-primary mx-auto">Courtwise AI</h1>
               
