@@ -6,3 +6,15 @@ verify_jwt = false
 
 [functions.seed-data]
 verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.enable-realtime]
+verify_jwt = true

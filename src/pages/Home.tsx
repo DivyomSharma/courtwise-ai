@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { MenuIcon, Search, ArrowUp } from 'lucide-react';
@@ -12,10 +12,21 @@ import LegalNews from '@/components/LegalNews';
 import PromptSearch from '@/components/PromptSearch';
 import { useUser } from '@/context/UserContext';
 import { Link } from 'react-router-dom';
+import BreakingNews from '@/components/BreakingNews';
 
 const Home = () => {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const { isLoggedIn, userRole } = useUser();
+  const [showNewsColumn, setShowNewsColumn] = useState(true);
+
+  // Handle animation for prompt search focus
+  const handlePromptFocus = () => {
+    setShowNewsColumn(false);
+  };
+
+  const handlePromptBlur = () => {
+    setShowNewsColumn(true);
+  };
 
   return (
     <SidebarProvider>
@@ -38,12 +49,27 @@ const Home = () => {
           </header>
           
           <div className="flex flex-1">
-            <div className="w-full lg:w-3/4 p-4 md:p-6">
+            {/* Breaking News Column - Only visible on home page */}
+            {showNewsColumn && (
+              <div className="w-0 md:w-1/4 bg-background border-r border-border transition-all duration-300 overflow-hidden">
+                <div className="p-4 sticky top-0">
+                  <h2 className="text-xl font-serif mb-4">Breaking News</h2>
+                  <BreakingNews />
+                </div>
+              </div>
+            )}
+            
+            <div className={`${showNewsColumn ? 'w-full md:w-3/4' : 'w-full'} p-4 md:p-6 transition-all duration-300`}>
               <div className="mb-8 text-center">
                 <h2 className="text-2xl md:text-3xl font-serif mb-2">Welcome to Courtwise AI</h2>
                 <p className="text-muted-foreground mb-8">Access a comprehensive library of Indian court cases and judgments with professional case notes and export capabilities.</p>
                 
-                <PromptSearch />
+                <div 
+                  onFocus={handlePromptFocus} 
+                  onBlur={handlePromptBlur}
+                >
+                  <PromptSearch />
+                </div>
               </div>
               
               <div className="mb-8">
@@ -137,32 +163,20 @@ const Home = () => {
               </div>
             </div>
             
-            <div className={`lg:w-1/4 bg-secondary border-l border-border transition-all duration-300 ${rightSidebarOpen ? 'block' : 'hidden'}`}>
-              <div className="p-4 sticky top-0">
-                <div className="md:hidden mb-4">
-                  <LiveDateTime />
-                </div>
-                
-                <div className="mb-6">
-                  <SearchBar />
-                </div>
-                
-                <div className="space-y-6">
-                  <LatestCases />
-                  <LegalNews />
-                </div>
-                
-                <div className="lg:hidden mt-4 text-center">
-                  <Button
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setRightSidebarOpen(false)}
-                  >
-                    Close Sidebar
-                  </Button>
+            {rightSidebarOpen && (
+              <div className="hidden lg:block lg:w-1/4 bg-secondary border-l border-border transition-all duration-300">
+                <div className="p-4 sticky top-0">
+                  <div className="mb-6">
+                    <SearchBar />
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <LatestCases />
+                    <LegalNews />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
             {!rightSidebarOpen && (
               <div className="hidden lg:hidden fixed bottom-4 right-4">
