@@ -9,92 +9,20 @@ import { MenuIcon, Search } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
-import SearchBar from '@/components/SearchBar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-const landmarkCases = [
-  {
-    id: "kesavananda-bharati",
-    title: "Kesavananda Bharati vs State of Kerala",
-    citation: "AIR 1973 SC 1461",
-    court: "Supreme Court",
-    date: "April 24, 1973",
-    category: "Constitutional",
-    summary: "The Supreme Court established the doctrine of the 'basic structure' of the Constitution, ruling that Parliament cannot amend the Constitution in a way that destroys its basic or essential features.",
-    importance: "High"
-  },
-  {
-    id: "maneka-gandhi",
-    title: "Maneka Gandhi vs Union of India",
-    citation: "AIR 1978 SC 597",
-    court: "Supreme Court",
-    date: "January 25, 1978",
-    category: "Constitutional",
-    summary: "The court interpreted the 'right to life' under Article 21 as not merely physical existence but as the right to live with human dignity, expanding the scope of fundamental rights significantly.",
-    importance: "High"
-  },
-  {
-    id: "vishaka",
-    title: "Vishaka vs State of Rajasthan",
-    citation: "AIR 1997 SC 3011",
-    court: "Supreme Court",
-    date: "August 13, 1997",
-    category: "Labor & Employment",
-    summary: "This landmark judgment laid down guidelines to prevent sexual harassment of women at workplaces, which later formed the basis for the Sexual Harassment of Women at Workplace Act, 2013.",
-    importance: "Medium"
-  },
-  {
-    id: "olga-tellis",
-    title: "Olga Tellis vs Bombay Municipal Corporation",
-    citation: "AIR 1986 SC 180",
-    court: "Supreme Court",
-    date: "July 10, 1985",
-    category: "Constitutional",
-    summary: "The court recognized that the right to livelihood is included within the 'right to life' under Article 21, noting that evicting a person from a pavement or slum affects their livelihood.",
-    importance: "Medium"
-  },
-  {
-    id: "puttaswamy",
-    title: "Justice K.S. Puttaswamy vs Union of India",
-    citation: "AIR 2017 SC 4161",
-    court: "Supreme Court",
-    date: "August 24, 2017",
-    category: "Constitutional",
-    summary: "The Supreme Court recognized the right to privacy as a fundamental right under Article 21 of the Indian Constitution, with significant implications for data protection and personal liberty.",
-    importance: "High"
-  },
-  {
-    id: "shah-bano",
-    title: "Mohd. Ahmed Khan vs Shah Bano Begum",
-    citation: "AIR 1985 SC 945",
-    court: "Supreme Court",
-    date: "April 23, 1985",
-    category: "Family",
-    summary: "The court ruled that a Muslim woman has the right to maintenance under Section 125 of CrPC after divorce, which led to significant political debate and the passage of the Muslim Women (Protection of Rights on Divorce) Act, 1986.",
-    importance: "High"
-  },
-  {
-    id: "navtej-johar",
-    title: "Navtej Singh Johar vs Union of India",
-    citation: "AIR 2018 SC 4321",
-    court: "Supreme Court",
-    date: "September 6, 2018",
-    category: "Criminal",
-    summary: "The Supreme Court decriminalized consensual homosexual acts by declaring Section 377 of the Indian Penal Code unconstitutional insofar as it criminalized consensual sexual conduct between adults of the same sex.",
-    importance: "High"
-  },
-  {
-    id: "mc-mehta",
-    title: "M.C. Mehta vs Union of India",
-    citation: "AIR 1987 SC 1086",
-    court: "Supreme Court",
-    date: "December 20, 1986",
-    category: "Environmental",
-    summary: "This case established the principle of absolute liability for industries engaged in hazardous activities, holding that such industries must ensure safety and cannot claim exemptions based on traditional defenses.",
-    importance: "Medium"
-  }
-];
+interface Case {
+  id: string;
+  title: string;
+  citation: string;
+  court: string;
+  date: string;
+  category: string;
+  summary: string;
+  importance?: string;
+}
 
 const LandmarkCases = () => {
   const location = useLocation();
@@ -102,7 +30,13 @@ const LandmarkCases = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [filteredCases, setFilteredCases] = useState(landmarkCases);
+  const [cases, setCases] = useState<Case[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch cases on mount
+  useEffect(() => {
+    fetchCases();
+  }, []);
 
   // Parse search query from URL on component mount
   useEffect(() => {
@@ -113,9 +47,56 @@ const LandmarkCases = () => {
     }
   }, [location.search]);
 
+  const fetchCases = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        const formattedCases = data.map(caseItem => {
+          // Format date if it's a valid date string
+          let formattedDate;
+          try {
+            formattedDate = new Date(caseItem.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          } catch (e) {
+            formattedDate = caseItem.date || 'Unknown date';
+          }
+
+          return {
+            ...caseItem,
+            date: formattedDate,
+            importance: caseItem.key_points && caseItem.key_points.length > 3 ? 'High' : 'Medium'
+          };
+        });
+        setCases(formattedCases);
+        filterCases(searchQuery, activeCategory, formattedCases);
+      }
+    } catch (error) {
+      console.error('Error fetching cases:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load landmark cases. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter cases based on search query and category
-  const filterCases = (query: string, category: string) => {
-    let filtered = [...landmarkCases];
+  const filterCases = (query: string, category: string, casesArray = cases) => {
+    let filtered = [...casesArray];
     
     // Filter by category if not 'all'
     if (category !== 'all') {
@@ -133,7 +114,7 @@ const LandmarkCases = () => {
       );
     }
     
-    setFilteredCases(filtered);
+    setCases(filtered);
   };
 
   // Handle category change
@@ -179,7 +160,11 @@ const LandmarkCases = () => {
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
                 <div className="md:hidden">
-                  <SidebarTrigger />
+                  <SidebarTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MenuIcon className="h-5 w-5" />
+                    </Button>
+                  </SidebarTrigger>
                 </div>
                 
                 <h1 className="text-xl md:text-2xl font-serif font-bold">Landmark Cases</h1>
@@ -215,16 +200,22 @@ const LandmarkCases = () => {
             <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="mb-8">
               <TabsList className="mb-4">
                 <TabsTrigger value="all">All Categories</TabsTrigger>
-                <TabsTrigger value="constitutional">Constitutional</TabsTrigger>
-                <TabsTrigger value="criminal">Criminal</TabsTrigger>
-                <TabsTrigger value="environmental">Environmental</TabsTrigger>
-                <TabsTrigger value="family">Family</TabsTrigger>
+                <TabsTrigger value="Constitutional">Constitutional</TabsTrigger>
+                <TabsTrigger value="Criminal">Criminal</TabsTrigger>
+                <TabsTrigger value="Environmental">Environmental</TabsTrigger>
+                <TabsTrigger value="Family">Family</TabsTrigger>
+                <TabsTrigger value="Labour">Labour</TabsTrigger>
+                <TabsTrigger value="Administrative">Administrative</TabsTrigger>
               </TabsList>
               
               <TabsContent value={activeCategory} className="mt-2">
-                {filteredCases.length > 0 ? (
+                {isLoading ? (
+                  <div className="text-center py-10">
+                    <p className="text-muted-foreground">Loading cases...</p>
+                  </div>
+                ) : cases.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {filteredCases.map((caseData) => (
+                    {cases.map((caseData) => (
                       <Card key={caseData.id} className="overflow-hidden">
                         <div className={`h-1.5 ${caseData.importance === 'High' ? 'bg-primary' : 'bg-muted'}`}></div>
                         <CardContent className="p-4">
@@ -269,7 +260,7 @@ const LandmarkCases = () => {
                     <Button variant="outline" onClick={() => {
                       setSearchQuery('');
                       setActiveCategory('all');
-                      filterCases('', 'all');
+                      fetchCases();
                       navigate('/landmark-cases');
                     }}>
                       View All Cases

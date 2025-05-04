@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -63,18 +62,12 @@ const CaseDetail = () => {
   const { isLoggedIn, userRole, remainingCases, decrementRemainingCases } = useUser();
   
   useEffect(() => {
-    fetchCaseDetails();
+    if (caseId) {
+      fetchCaseDetails();
+    }
   }, [caseId]);
   
   useEffect(() => {
-    // If user is not logged in, show a notification
-    if (!isLoggedIn && !loading) {
-      toast({
-        title: "Limited access",
-        description: "Sign in to access full case details and export options.",
-      });
-    }
-    
     // If user is free and has no remaining cases
     if (isLoggedIn && userRole === 'free' && remainingCases <= 0 && !loading) {
       setShowUpgradeDialog(true);
@@ -102,26 +95,35 @@ const CaseDetail = () => {
         .select('*')
         .eq('id', caseId)
         .maybeSingle();
-      
+
       if (error) {
-        console.error('Error fetching case details:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load case details. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        throw error;
       }
       
       if (data) {
         setCaseDetails(data as CaseDetails);
       } else {
-        toast({
-          title: "Case not found",
-          description: "The requested case could not be found.",
-          variant: "destructive",
-        });
-        navigate('/landmark-cases');
+        // If not found by UUID, try to fetch by title (string ID)
+        const { data: titleData, error: titleError } = await supabase
+          .from('cases')
+          .select('*')
+          .ilike('title', `%${caseId.replace(/-/g, ' ')}%`)
+          .maybeSingle();
+
+        if (titleError) {
+          throw titleError;
+        }
+
+        if (titleData) {
+          setCaseDetails(titleData as CaseDetails);
+        } else {
+          toast({
+            title: "Case not found",
+            description: "The requested case could not be found.",
+            variant: "destructive",
+          });
+          navigate('/landmark-cases');
+        }
       }
     } catch (error) {
       console.error('Error fetching case details:', error);

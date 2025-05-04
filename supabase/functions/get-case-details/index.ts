@@ -30,12 +30,33 @@ serve(async (req) => {
       );
     }
 
-    // Fetch the case details from the database
-    const { data: caseDetails, error } = await supabase
+    // First try to fetch by UUID
+    let caseDetails = null;
+    let error = null;
+    
+    // Try to fetch by UUID first
+    const { data: uuidData, error: uuidError } = await supabase
       .from('cases')
       .select('*')
       .eq('id', caseId)
       .maybeSingle();
+    
+    if (!uuidError && uuidData) {
+      caseDetails = uuidData;
+    } else {
+      // If UUID fetch fails, try to fetch by string id (for sample cases)
+      const { data: stringIdData, error: stringIdError } = await supabase
+        .from('cases')
+        .select('*')
+        .ilike('title', `%${caseId.replace(/-/g, ' ')}%`)
+        .maybeSingle();
+      
+      if (stringIdError) {
+        error = stringIdError;
+      } else if (stringIdData) {
+        caseDetails = stringIdData;
+      }
+    }
     
     if (error) {
       console.error('Database error:', error);
