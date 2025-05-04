@@ -11,7 +11,8 @@ import {
   Share2, 
   FileText, 
   Book, 
-  BookOpen
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,68 +29,46 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { supabase } from '@/integrations/supabase/client';
+import AddCaseNote from '@/components/AddCaseNote';
+import CaseNotes from '@/components/CaseNotes';
+import { format } from 'date-fns';
 
-// Mock case data for demonstration
-const caseDetails = {
-  id: "kesavananda-bharati",
-  title: "Kesavananda Bharati vs State of Kerala",
-  citation: "AIR 1973 SC 1461",
-  court: "Supreme Court",
-  date: "April 24, 1973",
-  category: "Constitutional",
-  judges: [
-    "S.M. Sikri CJ", "A.N. Ray", "D.G. Palekar", "K.K. Mathew",
-    "M.H. Beg", "J.M. Shelat", "A.N. Grover", "P. Jaganmohan Reddy", 
-    "H.R. Khanna", "Y.V. Chandrachud", "B.K. Mukherjea", "S.N. Dwivedi", "A.K. Mukherjea"
-  ],
-  petitioner: "His Holiness Kesavananda Bharati Sripadagalvaru",
-  respondent: "State of Kerala and Another",
-  summary: "The Supreme Court established the doctrine of the 'basic structure' of the Constitution, ruling that Parliament cannot amend the Constitution in a way that destroys its basic or essential features.",
-  fullText: `
-    This landmark case was heard for 68 days and resulted in the most voluminous judgment in the history of the Supreme Court at that time. The 13-judge bench delivered 11 separate judgments, which were summarized by Justice H.R. Khanna.
-    
-    The case arose from the 24th, 25th, and 29th amendments to the Constitution, which were challenged on the grounds that they violated the "basic structure" of the Constitution. The petitioner, Kesavananda Bharati, was the head of a Hindu monastery in Kerala who challenged the Kerala government's land reforms acts.
-    
-    By a narrow margin of 7:6, the Supreme Court held that the Parliament could amend any part of the Constitution, including the Fundamental Rights, but it cannot destroy the "basic structure" of the Constitution. While the Court did not precisely define what constitutes the "basic structure," it included elements such as:
-    
-    1. Supremacy of the Constitution
-    2. Republican and democratic form of government
-    3. Secular character of the Constitution
-    4. Separation of powers
-    5. Federal character of the Constitution
-    
-    This doctrine has since been used to invalidate several constitutional amendments and has become a cornerstone of Indian constitutional law.
-  `,
-  keyPoints: [
-    "Established the 'Basic Structure Doctrine' in Indian constitutional law",
-    "Held that Parliament cannot amend the Constitution to destroy its basic features",
-    "Limited the amending power of Parliament under Article 368",
-    "Partially overruled the decision in Golak Nath v. State of Punjab",
-    "One of the most significant constitutional cases in Indian judicial history"
-  ],
-  relatedCases: [
-    "Golak Nath v. State of Punjab (1967)",
-    "Minerva Mills v. Union of India (1980)",
-    "Indira Gandhi v. Raj Narain (1975)",
-    "I.R. Coelho v. State of Tamil Nadu (2007)"
-  ]
-};
+interface CaseDetails {
+  id: string;
+  title: string;
+  citation: string;
+  court: string;
+  date: string;
+  category: string;
+  judges: string[];
+  petitioner: string | null;
+  respondent: string | null;
+  summary: string;
+  full_text: string | null;
+  key_points: string[] | null;
+  related_cases: string[] | null;
+}
 
 const CaseDetail = () => {
   const { caseId } = useParams();
+  const [caseDetails, setCaseDetails] = useState<CaseDetails | null>(null);
+  const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [shouldRefreshNotes, setShouldRefreshNotes] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isLoggedIn, userRole, remainingCases, decrementRemainingCases } = useUser();
   
-  // In a real application, you would fetch case details based on caseId
+  useEffect(() => {
+    fetchCaseDetails();
+  }, [caseId]);
   
   useEffect(() => {
-    // If user is not logged in, show a notification or redirect
-    if (!isLoggedIn) {
+    // If user is not logged in, show a notification
+    if (!isLoggedIn && !loading) {
       toast({
         title: "Limited access",
         description: "Sign in to access full case details and export options.",
@@ -97,19 +76,64 @@ const CaseDetail = () => {
     }
     
     // If user is free and has no remaining cases
-    if (isLoggedIn && userRole === 'free' && remainingCases <= 0) {
+    if (isLoggedIn && userRole === 'free' && remainingCases <= 0 && !loading) {
       setShowUpgradeDialog(true);
     }
     
     // Track case view for free users
-    if (isLoggedIn && userRole === 'free' && remainingCases > 0) {
+    if (isLoggedIn && userRole === 'free' && remainingCases > 0 && !loading && caseDetails) {
       decrementRemainingCases();
       toast({
         title: "Case note usage",
         description: `You have ${remainingCases - 1} case note${remainingCases - 1 !== 1 ? 's' : ''} remaining today.`,
       });
     }
-  }, [isLoggedIn, userRole, remainingCases]);
+  }, [isLoggedIn, userRole, remainingCases, loading, caseDetails]);
+
+  const fetchCaseDetails = async () => {
+    if (!caseId) return;
+    
+    setLoading(true);
+    
+    try {
+      // First try to fetch from Supabase directly
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .eq('id', caseId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching case details:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load case details. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        setCaseDetails(data as CaseDetails);
+      } else {
+        toast({
+          title: "Case not found",
+          description: "The requested case could not be found.",
+          variant: "destructive",
+        });
+        navigate('/landmark-cases');
+      }
+    } catch (error) {
+      console.error('Error fetching case details:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleDownload = (format: string) => {
     if (!isLoggedIn) {
@@ -160,6 +184,48 @@ const CaseDetail = () => {
     });
   };
 
+  const handleNoteAdded = () => {
+    setShouldRefreshNotes(true);
+  };
+
+  const handleRefreshComplete = () => {
+    setShouldRefreshNotes(false);
+  };
+
+  if (loading) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          
+          <main className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </main>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
+  if (!caseDetails) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          
+          <main className="flex-1">
+            <div className="container mx-auto px-4 py-16 text-center">
+              <h2 className="text-2xl font-serif mb-4">Case Not Found</h2>
+              <p className="mb-6">The case you're looking for could not be found.</p>
+              <Button asChild>
+                <Link to="/landmark-cases">Browse All Cases</Link>
+              </Button>
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -170,7 +236,11 @@ const CaseDetail = () => {
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
                 <div className="md:hidden">
-                  <SidebarTrigger />
+                  <SidebarTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MenuIcon className="h-5 w-5" />
+                    </Button>
+                  </SidebarTrigger>
                 </div>
                 
                 <Link to="/landmark-cases">
@@ -237,15 +307,17 @@ const CaseDetail = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Date</p>
-                  <p className="font-medium">{caseDetails.date}</p>
+                  <p className="font-medium">
+                    {caseDetails.date ? format(new Date(caseDetails.date), 'MMMM d, yyyy') : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Petitioner</p>
-                  <p className="font-medium">{caseDetails.petitioner}</p>
+                  <p className="font-medium">{caseDetails.petitioner || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Respondent</p>
-                  <p className="font-medium">{caseDetails.respondent}</p>
+                  <p className="font-medium">{caseDetails.respondent || 'N/A'}</p>
                 </div>
               </div>
               
@@ -254,16 +326,18 @@ const CaseDetail = () => {
                 <Badge variant="outline">{caseDetails.category}</Badge>
               </div>
               
-              <div>
-                <h3 className="font-medium mb-2">Bench:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {caseDetails.judges.map((judge, index) => (
-                    <Badge key={index} variant="secondary" className="bg-secondary/50">
-                      {judge}
-                    </Badge>
-                  ))}
+              {caseDetails.judges && caseDetails.judges.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-2">Bench:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {caseDetails.judges.map((judge, index) => (
+                      <Badge key={index} variant="secondary" className="bg-secondary/50">
+                        {judge}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             
             <Tabs defaultValue="summary" className="mb-6">
@@ -276,9 +350,9 @@ const CaseDetail = () => {
                   <Book className="h-4 w-4 mr-2" />
                   Full Text
                 </TabsTrigger>
-                <TabsTrigger value="analysis" className="flex items-center">
+                <TabsTrigger value="notes" className="flex items-center">
                   <BookOpen className="h-4 w-4 mr-2" />
-                  Analysis
+                  Your Notes
                 </TabsTrigger>
               </TabsList>
               
@@ -290,19 +364,27 @@ const CaseDetail = () => {
                       {caseDetails.summary}
                     </p>
                     
-                    <h4 className="font-medium mb-3">Key Points:</h4>
-                    <ul className="list-disc pl-6 space-y-2 mb-6">
-                      {caseDetails.keyPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
+                    {caseDetails.key_points && caseDetails.key_points.length > 0 && (
+                      <>
+                        <h4 className="font-medium mb-3">Key Points:</h4>
+                        <ul className="list-disc pl-6 space-y-2 mb-6">
+                          {caseDetails.key_points.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
                     
-                    <h4 className="font-medium mb-3">Related Cases:</h4>
-                    <ul className="list-disc pl-6 space-y-2">
-                      {caseDetails.relatedCases.map((relatedCase, index) => (
-                        <li key={index}>{relatedCase}</li>
-                      ))}
-                    </ul>
+                    {caseDetails.related_cases && caseDetails.related_cases.length > 0 && (
+                      <>
+                        <h4 className="font-medium mb-3">Related Cases:</h4>
+                        <ul className="list-disc pl-6 space-y-2">
+                          {caseDetails.related_cases.map((relatedCase, index) => (
+                            <li key={index}>{relatedCase}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -311,50 +393,34 @@ const CaseDetail = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <h3 className="text-lg font-serif font-semibold mb-4">Full Text</h3>
-                    <div className="prose max-w-none">
-                      {caseDetails.fullText.split('\n\n').map((paragraph, index) => (
-                        <p key={index} className="mb-4">{paragraph}</p>
-                      ))}
-                    </div>
+                    {caseDetails.full_text ? (
+                      <div className="prose max-w-none">
+                        {caseDetails.full_text.split('\n\n').map((paragraph, index) => (
+                          <p key={index} className="mb-4">{paragraph}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        Full text for this case is not available.
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
               
-              <TabsContent value="analysis" className="mt-6">
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-serif font-semibold mb-4">Legal Analysis</h3>
-                    <p className="text-muted-foreground mb-4">
-                      This section provides expert legal analysis of the case and its implications.
-                    </p>
-                    
-                    <div className="rounded-md bg-primary/5 p-4 border border-primary/20 mb-6">
-                      <h4 className="font-medium mb-2">Constitutional Significance:</h4>
-                      <p className="mb-4">
-                        The Kesavananda Bharati case is arguably the most important constitutional case in India's judicial history. 
-                        It established the "Basic Structure Doctrine," which limits the amending power of Parliament by protecting certain 
-                        fundamental aspects of the Constitution from being altered or destroyed.
-                      </p>
-                      <p>
-                        This doctrine has since been used in numerous cases to strike down constitutional amendments 
-                        that were found to violate the basic structure of the Constitution.
-                      </p>
-                    </div>
-                    
-                    <h4 className="font-medium mb-3">Legal Principles Established:</h4>
-                    <ul className="list-disc pl-6 space-y-3 mb-6">
-                      <li>Parliament's power to amend the Constitution under Article 368 is not unlimited</li>
-                      <li>The term "amendment" implies changes within the broad framework of the original Constitution</li>
-                      <li>Parliament cannot use its amending power to "damage," "emasculate," "destroy," "abrogate," "change," or "alter" the "basic structure" or framework of the Constitution</li>
-                    </ul>
-                    
-                    <h4 className="font-medium mb-3">Impact on Subsequent Legislation:</h4>
-                    <p>
-                      This landmark decision has shaped the course of constitutional jurisprudence in India and has been cited in numerous subsequent cases. 
-                      The doctrine has been applied to invalidate several constitutional amendments, including portions of the 39th, 42nd, and 103rd amendments.
-                    </p>
-                  </CardContent>
-                </Card>
+              <TabsContent value="notes" className="mt-6">
+                <div className="space-y-6">
+                  <AddCaseNote 
+                    caseId={caseDetails.id} 
+                    onNoteAdded={handleNoteAdded} 
+                  />
+                  
+                  <CaseNotes 
+                    caseId={caseDetails.id}
+                    shouldRefresh={shouldRefreshNotes}
+                    onRefreshComplete={handleRefreshComplete}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
             
