@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState("free");
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,6 +21,11 @@ const Auth = () => {
     
     // Simulate authentication
     setTimeout(() => {
+      // Store user info in localStorage
+      localStorage.setItem('userIsLoggedIn', 'true');
+      localStorage.setItem('userRole', 'subscriber'); // Default role for logged in users
+      localStorage.setItem('userName', 'John Doe');
+      
       setIsLoading(false);
       toast({
         title: "Successfully logged in",
@@ -34,6 +41,11 @@ const Auth = () => {
     
     // Simulate registration
     setTimeout(() => {
+      // Store user info in localStorage
+      localStorage.setItem('userIsLoggedIn', 'true');
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userName', e.currentTarget.fullName.value);
+      
       setIsLoading(false);
       toast({
         title: "Account created",
@@ -107,6 +119,24 @@ const Auth = () => {
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
                       <Input id="confirmPassword" type="password" required />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Subscription Plan</Label>
+                      <Select 
+                        defaultValue="free" 
+                        value={role}
+                        onValueChange={setRole}
+                      >
+                        <SelectTrigger id="role">
+                          <SelectValue placeholder="Select plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free (1 case note/day)</SelectItem>
+                          <SelectItem value="subscriber">Premium ($9.99/month)</SelectItem>
+                          <SelectItem value="admin">Admin (For testing)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={isLoading}>

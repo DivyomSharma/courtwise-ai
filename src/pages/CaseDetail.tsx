@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,7 +19,17 @@ import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/context/UserContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Mock case data for demonstration
 const caseDetails = {
@@ -70,10 +80,52 @@ const caseDetails = {
 const CaseDetail = () => {
   const { caseId } = useParams();
   const [bookmarked, setBookmarked] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isLoggedIn, userRole, remainingCases, decrementRemainingCases } = useUser();
   
   // In a real application, you would fetch case details based on caseId
   
+  useEffect(() => {
+    // If user is not logged in, show a notification or redirect
+    if (!isLoggedIn) {
+      toast({
+        title: "Limited access",
+        description: "Sign in to access full case details and export options.",
+      });
+    }
+    
+    // If user is free and has no remaining cases
+    if (isLoggedIn && userRole === 'free' && remainingCases <= 0) {
+      setShowUpgradeDialog(true);
+    }
+    
+    // Track case view for free users
+    if (isLoggedIn && userRole === 'free' && remainingCases > 0) {
+      decrementRemainingCases();
+      toast({
+        title: "Case note usage",
+        description: `You have ${remainingCases - 1} case note${remainingCases - 1 !== 1 ? 's' : ''} remaining today.`,
+      });
+    }
+  }, [isLoggedIn, userRole, remainingCases]);
+  
   const handleDownload = (format: string) => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Login required",
+        description: "Please sign in to download case details.",
+      });
+      navigate('/auth');
+      return;
+    }
+    
+    if (userRole === 'free') {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
     toast({
       title: "Download initiated",
       description: `Downloading case in ${format} format...`,
@@ -81,6 +133,15 @@ const CaseDetail = () => {
   };
   
   const handleBookmark = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Login required",
+        description: "Please sign in to bookmark cases.",
+      });
+      navigate('/auth');
+      return;
+    }
+    
     setBookmarked(!bookmarked);
     toast({
       title: bookmarked ? "Bookmark removed" : "Bookmark added",
@@ -108,13 +169,11 @@ const CaseDetail = () => {
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
-                <SidebarTrigger>
-                  <Button variant="ghost" size="icon" className="md:hidden mr-2">
-                    <MenuIcon className="h-5 w-5" />
-                  </Button>
-                </SidebarTrigger>
+                <div className="md:hidden">
+                  <SidebarTrigger />
+                </div>
                 
-                <Link to="/dashboard">
+                <Link to="/landmark-cases">
                   <Button variant="ghost" className="mr-2">
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     <span className="hidden sm:inline">Back</span>
@@ -330,6 +389,30 @@ const CaseDetail = () => {
           </div>
         </main>
       </div>
+      
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade to Premium</DialogTitle>
+            <DialogDescription>
+              You've reached your daily limit of case notes. Upgrade to premium for unlimited access.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-muted/50 p-4 rounded-md my-2">
+            <h4 className="font-medium">Premium Plan Benefits:</h4>
+            <ul className="mt-2 space-y-1 text-sm">
+              <li>• Unlimited case notes access</li>
+              <li>• Export to multiple formats</li>
+              <li>• Advanced search features</li>
+              <li>• Priority support</li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Maybe Later</Button>
+            <Button onClick={() => navigate('/profile')}>Upgrade Now</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };

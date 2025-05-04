@@ -3,10 +3,15 @@ import React, { useState } from 'react';
 import { Search, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/context/UserContext';
 
 const PromptSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isLoggedIn } = useUser();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +20,19 @@ const PromptSearch = () => {
         title: "Search initiated",
         description: `Searching for: "${searchQuery}"`,
       });
+      
+      // Navigate to landmark cases with the search query
+      navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+  
+  const handleQuickSearch = (term: string) => {
+    setSearchQuery(term);
+    toast({
+      title: "Quick search selected",
+      description: `Searching for: "${term}"`,
+    });
+    navigate(`/landmark-cases?q=${encodeURIComponent(term)}`);
   };
 
   return (
@@ -24,7 +41,7 @@ const PromptSearch = () => {
         <div className="relative rounded-xl shadow-md bg-background">
           <Input
             className="pl-12 pr-24 py-6 text-base md:text-lg h-16 rounded-xl border-2 focus-visible:ring-primary"
-            placeholder="What do you want to search for?"
+            placeholder={isLoggedIn ? "What case or judgment are you looking for?" : "Search for landmark cases..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -53,6 +70,7 @@ const PromptSearch = () => {
             variant="outline" 
             size="sm"
             className="rounded-full bg-secondary/50"
+            onClick={() => handleQuickSearch(item)}
           >
             {item}
           </Button>

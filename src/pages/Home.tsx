@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,12 @@ import SearchBar from '@/components/SearchBar';
 import LatestCases from '@/components/LatestCases';
 import LegalNews from '@/components/LegalNews';
 import PromptSearch from '@/components/PromptSearch';
+import { useUser } from '@/context/UserContext';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const { isLoggedIn, userRole } = useUser();
 
   return (
     <SidebarProvider>
@@ -73,12 +77,15 @@ const Home = () => {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-serif">Featured Landmark Cases</h2>
-                  <Button variant="outline" size="sm">View All</Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/landmark-cases">View All</Link>
+                  </Button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {[
                     {
+                      id: "kesavananda-bharati",
                       title: "Kesavananda Bharati vs State of Kerala",
                       citation: "AIR 1973 SC 1461",
                       court: "Supreme Court",
@@ -87,6 +94,7 @@ const Home = () => {
                       summary: "The Supreme Court established the doctrine of the 'basic structure' of the Constitution, ruling that Parliament cannot amend the Constitution in a way that destroys its basic or essential features."
                     },
                     {
+                      id: "vishaka",
                       title: "Vishaka vs State of Rajasthan",
                       citation: "AIR 1997 SC 3011",
                       court: "Supreme Court",
@@ -95,6 +103,7 @@ const Home = () => {
                       summary: "This landmark judgment laid down guidelines to prevent sexual harassment of women at workplaces, which later formed the basis for the Sexual Harassment of Women at Workplace Act, 2013."
                     },
                     {
+                      id: "puttaswamy",
                       title: "Justice K.S. Puttaswamy vs Union of India",
                       citation: "AIR 2017 SC 4161",
                       court: "Supreme Court",
@@ -118,7 +127,9 @@ const Home = () => {
                       </div>
                       <p className="text-sm line-clamp-3">{caseData.summary}</p>
                       <div className="mt-4">
-                        <Button size="sm" variant="default" className="w-full">View Case</Button>
+                        <Button size="sm" variant="default" className="w-full" asChild>
+                          <Link to={`/case/${caseData.id}`}>View Case</Link>
+                        </Button>
                       </div>
                     </div>
                   ))}
