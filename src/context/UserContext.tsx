@@ -18,6 +18,7 @@ interface UserContextType {
   session: Session | null;
   profile: UserProfile | null;
   userRole: 'free' | 'subscriber' | 'admin';
+  userName: string;  // Added userName property
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, fullName: string, role: 'free' | 'subscriber' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
@@ -32,6 +33,7 @@ const UserContext = createContext<UserContextType>({
   session: null,
   profile: null,
   userRole: 'free',
+  userName: 'Guest User', // Default value for userName
   login: async () => {},
   signup: async () => {},
   logout: async () => {},
@@ -48,6 +50,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<'free' | 'subscriber' | 'admin'>('free');
+  const [userName, setUserName] = useState<string>('Guest User'); // Initialize userName state
   const [remainingCases, setRemainingCases] = useState(1);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -70,6 +73,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(null);
           setUserRole('free');
           setRemainingCases(1);
+          setUserName('Guest User'); // Reset userName when logged out
         }
       }
     );
@@ -108,6 +112,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data) {
         setProfile(data as UserProfile);
         setUserRole(data.role as 'free' | 'subscriber' | 'admin');
+        
+        // Set userName based on profile data
+        setUserName(data.full_name || data.username || 'User');
         
         // Set remaining cases based on role
         if (data.role === 'free') {
@@ -277,6 +284,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile,
     userRole,
+    userName, // Expose userName in the context
     login,
     signup,
     logout,
