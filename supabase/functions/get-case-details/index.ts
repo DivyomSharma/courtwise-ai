@@ -1,105 +1,118 @@
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.32.0';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+// Function to check if input is a UUID 
+function isValidUUID(str: string) {
+  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return regex.test(str);
+}
 
+serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders, status: 204 });
+  }
+  
   try {
-    // Create a Supabase client with the admin key
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    );
     
-    let caseId = '';
+    // Get case ID from request
+    const { id } = await req.json();
     
-    // Check if it's a GET or POST request and extract caseId accordingly
-    if (req.method === 'GET') {
-      // Get the case ID from the query string
-      const url = new URL(req.url);
-      caseId = url.searchParams.get('id') || '';
-    } else {
-      // Get the case ID from the request body
-      const requestData = await req.json();
-      caseId = requestData.id || '';
-    }
-    
-    if (!caseId) {
+    if (!id) {
       return new Response(
-        JSON.stringify({ error: 'Case ID is required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ error: "Case ID is required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
-
-    console.log('Searching for case with ID:', caseId);
-
-    // First try to fetch by UUID
+    
+    console.log(`Searching for case with ID: ${id}`);
+    
+    // Try to fetch from different tables based on the ID format
     let caseDetails = null;
-    let error = null;
     
-    // Try to fetch by UUID first
-    const { data: uuidData, error: uuidError } = await supabase
-      .from('cases')
-      .select('*')
-      .eq('id', caseId)
-      .maybeSingle();
-    
-    console.log('UUID lookup result:', uuidData || 'none', uuidError ? `Error: ${uuidError.message}` : 'No error');
-
-    if (!uuidError && uuidData) {
-      caseDetails = uuidData;
-    } else {
-      // If UUID fetch fails, try to fetch by string id (for sample cases)
-      const { data: stringIdData, error: stringIdError } = await supabase
+    // First try to find by UUID if it looks like a UUID
+    if (isValidUUID(id)) {
+      console.log("UUID lookup result:");
+      // Try landmark cases first
+      const { data: landmarkCase, error: landmarkError } = await supabaseClient
         .from('cases')
         .select('*')
-        .ilike('title', `%${caseId.replace(/-/g, ' ')}%`)
+        .eq('id', id)
         .maybeSingle();
       
-      console.log('Title lookup result:', stringIdData || 'none', stringIdError ? `Error: ${stringIdError.message}` : 'No error');
-      
-      if (stringIdError) {
-        error = stringIdError;
-      } else if (stringIdData) {
-        caseDetails = stringIdData;
+      if (landmarkError) {
+        console.error("Error fetching landmark case:", landmarkError);
       }
+      
+      if (landmarkCase) {
+        caseDetails = { ...landmarkCase, is_landmark: true };
+      } else {
+        // Try regular cases if not found
+        const { data: regularCase, error: regularError } = await supabaseClient
+          .from('regular_cases')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        
+        if (regularError) {
+          console.error("Error fetching regular case:", regularError);
+        }
+        
+        if (regularCase) {
+          caseDetails = { ...regularCase, is_landmark: false };
+        }
+      }
+      console.log(caseDetails ? "found" : "none", landmarkError || "No error");
     }
     
-    if (error) {
-      console.error('Database error:', error);
-      return new Response(
-        JSON.stringify({ error: 'Database error fetching case details' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
+    // If not found by UUID, try by title/slug (for pre-defined cases like 'kesavananda-bharati')
+    if (!caseDetails) {
+      console.log("Title lookup result:");
+      const { data: titleCase, error: titleError } = await supabaseClient
+        .from('cases')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (titleError) {
+        console.error("Error fetching by title:", titleError);
+      }
+      
+      if (titleCase) {
+        caseDetails = { ...titleCase, is_landmark: true };
+      }
+      console.log(titleCase ? "found" : "none", titleError || "No error");
     }
     
     if (!caseDetails) {
       return new Response(
-        JSON.stringify({ error: 'Case not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        JSON.stringify({ error: "Case not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
-
-    console.log('Returning case details for:', caseDetails.title);
-
-    // Return the case details
+    
     return new Response(
       JSON.stringify({ caseDetails }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
+    
   } catch (error) {
-    console.error('Function error:', error);
+    console.error("Error in get-case-details function:", error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ error: "Internal server error" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      case_categories: {
+        Row: {
+          count: number | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          count?: number | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          count?: number | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       case_notes: {
         Row: {
           case_id: string
@@ -170,6 +191,63 @@ export type Database = {
         }
         Relationships: []
       }
+      regular_cases: {
+        Row: {
+          category: string
+          citation: string
+          court: string
+          created_at: string | null
+          date: string
+          full_text: string | null
+          id: string
+          is_landmark: boolean | null
+          judges: string[] | null
+          key_points: string[] | null
+          petitioner: string | null
+          related_cases: string[] | null
+          respondent: string | null
+          source_url: string | null
+          summary: string
+          title: string
+        }
+        Insert: {
+          category: string
+          citation: string
+          court: string
+          created_at?: string | null
+          date: string
+          full_text?: string | null
+          id?: string
+          is_landmark?: boolean | null
+          judges?: string[] | null
+          key_points?: string[] | null
+          petitioner?: string | null
+          related_cases?: string[] | null
+          respondent?: string | null
+          source_url?: string | null
+          summary: string
+          title: string
+        }
+        Update: {
+          category?: string
+          citation?: string
+          court?: string
+          created_at?: string | null
+          date?: string
+          full_text?: string | null
+          id?: string
+          is_landmark?: boolean | null
+          judges?: string[] | null
+          key_points?: string[] | null
+          petitioner?: string | null
+          related_cases?: string[] | null
+          respondent?: string | null
+          source_url?: string | null
+          summary?: string
+          title?: string
+        }
+        Relationships: []
+      }
       user_usage: {
         Row: {
           cases_viewed: number
@@ -196,7 +274,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_cases_by_category: {
+        Args: { category_name: string }
+        Returns: {
+          id: string
+          title: string
+          citation: string
+          court: string
+          date: string
+          category: string
+          summary: string
+          is_landmark: boolean
+        }[]
+      }
+      get_categories_with_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+          count: number
+        }[]
+      }
+      search_cases: {
+        Args: { search_query: string }
+        Returns: {
+          id: string
+          title: string
+          citation: string
+          court: string
+          date: string
+          category: string
+          summary: string
+          is_landmark: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

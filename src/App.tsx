@@ -14,6 +14,7 @@ import { UserProvider } from "./context/UserContext";
 import UserProfile from "./pages/UserProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Explore from "./pages/Explore";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/landmark-cases" element={<LandmarkCases />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/case/:caseId" element={<CaseDetail />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<UserProfile />} />

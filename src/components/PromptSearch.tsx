@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/integrations/supabase/client';
+import { searchCases, searchIndianKanoon } from '@/utils/caseHelpers';
 
 const PromptSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,31 +27,47 @@ const PromptSearch = () => {
         description: `Searching for: "${searchQuery}"`,
       });
       
-      // If the query is simple, just redirect to landmark cases
-      if (searchQuery.length < 10 || searchQuery.split(' ').length < 3) {
-        navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
+      // Search local database first
+      const results = await searchCases(searchQuery);
+      
+      // Store search results
+      localStorage.setItem('lastSearchResults', JSON.stringify(results || []));
+      localStorage.setItem('lastSearchQuery', searchQuery);
+      
+      // If the query is specific and we have results, go to results page
+      if (results.length > 0) {
+        navigate(`/explore?q=${encodeURIComponent(searchQuery)}`);
         return;
       }
       
-      // For more complex queries, use AI search
-      const { data, error } = await supabase.functions.invoke('ai-search', {
-        body: { query: searchQuery }
+      // If query is complex, try AI search
+      if (searchQuery.length > 10 || searchQuery.split(' ').length >= 3) {
+        const { data, error } = await supabase.functions.invoke('ai-search', {
+          body: { query: searchQuery }
+        });
+        
+        if (error) throw error;
+        
+        if (data && data.results) {
+          // If AI found specific cases, navigate to the first one
+          if (data.results.specificCase) {
+            navigate(`/case/${data.results.specificCase}`);
+          } else {
+            // Otherwise navigate to explore with AI-enhanced params
+            navigate(`/explore?q=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(data.results.suggestedCategory || '')}`);
+          }
+          return;
+        }
+      }
+      
+      // If no results or no AI enhancement, use indiankanoon.org as backup
+      toast({
+        title: "External search",
+        description: "Searching Indian Kanoon for more comprehensive results.",
       });
       
-      if (error) throw error;
+      searchIndianKanoon(searchQuery);
       
-      if (data && data.results) {
-        // If AI found specific cases, navigate to the first one
-        if (data.results.specificCase) {
-          navigate(`/case/${data.results.specificCase}`);
-        } else {
-          // Otherwise navigate to search results with AI-enhanced params
-          navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(data.results.suggestedCategory || '')}`);
-        }
-      } else {
-        // Fallback to regular search
-        navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
-      }
     } catch (error) {
       console.error("Search error:", error);
       toast({
@@ -58,7 +75,7 @@ const PromptSearch = () => {
         description: "There was a problem processing your search. Using regular search instead.",
         variant: "destructive"
       });
-      navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/explore?q=${encodeURIComponent(searchQuery)}`);
     } finally {
       setIsSearching(false);
     }
@@ -70,7 +87,7 @@ const PromptSearch = () => {
       title: "Quick search selected",
       description: `Searching for: "${term}"`,
     });
-    navigate(`/landmark-cases?q=${encodeURIComponent(term)}`);
+    navigate(`/explore?q=${encodeURIComponent(term)}`);
   };
 
   return (

@@ -1,187 +1,168 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Landmark, User, Folder, LogOut, Settings, Bell } from 'lucide-react';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-} from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Sidebar, SidebarClose } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { 
+  Home, 
+  LayoutDashboard, 
+  BookOpen, 
+  Search,
+  User, 
+  LogIn, 
+  Settings,
+  X,
+  List
+} from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/context/UserContext';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-
-const categoriesList = [
-  "Constitutional",
-  "Criminal",
-  "Civil",
-  "Corporate",
-  "Tax",
-  "Intellectual Property",
-  "Family",
-  "Labor & Employment",
-  "Environmental",
-  "International",
-];
 
 const AppSidebar = () => {
-  const [isExploreOpen, setIsExploreOpen] = React.useState(true); // Changed to true by default
-  const { isLoggedIn, userName, userRole, logout, remainingCases } = useUser();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-    navigate('/');
-  };
-  
-  // Get user initials for avatar fallback
-  const getInitials = () => {
-    if (!userName) return "GU";
-    return userName
-      .split(' ')
-      .map(name => name[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
+  const location = useLocation();
+  const { isLoggedIn, userName, userRole } = useUser();
   
   return (
-    <Sidebar>
-      <SidebarHeader className="flex items-center p-4 border-b">
-        {isLoggedIn ? (
-          <Link to="/profile" className="flex items-center w-full">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-primary text-primary-foreground">{getInitials()}</AvatarFallback>
-            </Avatar>
-            <div className="ml-2 flex-1">
-              <p className="text-sm font-medium">{userName}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
-                {userRole === 'free' && (
-                  <Badge variant="outline" className="text-xs">
-                    {remainingCases} case{remainingCases !== 1 ? 's' : ''} left
-                  </Badge>
+    <Sidebar className="border-r bg-card overflow-hidden w-64">
+      <div className="flex h-full flex-col">
+        <div className="px-4 py-3 flex items-center justify-between border-b">
+          <Link to="/" className="flex items-center">
+            <span className="font-serif text-xl font-bold">Courtwise AI</span>
+          </Link>
+          <SidebarClose>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close sidebar</span>
+            </Button>
+          </SidebarClose>
+        </div>
+        
+        <ScrollArea className="flex-1 overflow-auto">
+          <nav className="p-4 space-y-2">
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-2 text-muted-foreground">Navigation</h3>
+              <div className="space-y-1">
+                <Button 
+                  variant={location.pathname === '/' ? "secondary" : "ghost"}
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/">
+                    <Home className="h-4 w-4 mr-2" />
+                    Home
+                  </Link>
+                </Button>
+                
+                {isLoggedIn && (
+                  <Button 
+                    variant={location.pathname === '/dashboard' ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                    asChild
+                  >
+                    <Link to="/dashboard">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </Button>
                 )}
               </div>
             </div>
-          </Link>
-        ) : (
-          <Link to="/auth" className="flex items-center w-full">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-muted">GU</AvatarFallback>
-            </Avatar>
-            <div className="ml-2">
-              <p className="text-sm font-medium">Guest User</p>
-              <p className="text-xs text-muted-foreground">Sign in</p>
-            </div>
-          </Link>
-        )}
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link to="/" className="flex items-center">
-                  <User className="h-5 w-5 mr-3" />
-                  <span>Home</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link to="/dashboard" className="flex items-center">
-                  <User className="h-5 w-5 mr-3" />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link to="/landmark-cases" className="flex items-center">
-                  <Landmark className="h-5 w-5 mr-3" />
-                  <span>Landmark Cases</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <Collapsible open={isExploreOpen} onOpenChange={setIsExploreOpen}>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton className="w-full justify-between">
-                    <div className="flex items-center">
-                      <Folder className="h-5 w-5 mr-3" />
-                      <span>Explore</span>
-                    </div>
-                    {isExploreOpen ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-9 pr-2 py-2 space-y-1">
-                  {categoriesList.map((category) => (
-                    <div key={category} className="rounded-md hover:bg-accent">
-                      <Link
-                        to={`/landmark-cases?category=${encodeURIComponent(category.toLowerCase())}`}
-                        className="block px-2 py-1.5 text-sm"
-                      >
-                        {category}
-                      </Link>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarMenuItem>
-            
-            {userRole === 'admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/admin" className="flex items-center">
-                    <Settings className="h-5 w-5 mr-3" />
-                    <span>Admin Panel</span>
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-2 text-muted-foreground">Case Library</h3>
+              <div className="space-y-1">
+                <Button 
+                  variant={location.pathname === '/landmark-cases' ? "secondary" : "ghost"}
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/landmark-cases">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Landmark Cases
                   </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarFooter className="border-t p-4">
-        {isLoggedIn ? (
-          <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            <span>Log out</span>
-          </Button>
-        ) : (
-          <Button variant="default" size="sm" className="w-full" asChild>
-            <Link to="/auth">
-              <span>Sign In</span>
-            </Link>
-          </Button>
+                </Button>
+                
+                <Button 
+                  variant={location.pathname === '/explore' ? "secondary" : "ghost"}
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/explore">
+                    <List className="h-4 w-4 mr-2" />
+                    Explore Cases
+                  </Link>
+                </Button>
+                
+                <Button 
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => window.open('https://indiankanoon.org/', '_blank')}
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Indian Kanoon
+                </Button>
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-2 text-muted-foreground">Account</h3>
+              <div className="space-y-1">
+                {isLoggedIn ? (
+                  <>
+                    <Button 
+                      variant={location.pathname === '/profile' ? "secondary" : "ghost"}
+                      className="w-full justify-start"
+                      asChild
+                    >
+                      <Link to="/profile">
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </Link>
+                    </Button>
+                    
+                    {userRole === 'admin' && (
+                      <Button 
+                        variant={location.pathname === '/admin' ? "secondary" : "ghost"}
+                        className="w-full justify-start"
+                        asChild
+                      >
+                        <Link to="/admin">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Admin
+                        </Link>
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Button 
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                  >
+                    <Link to="/auth">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </nav>
+        </ScrollArea>
+        
+        {isLoggedIn && (
+          <div className="p-4 border-t">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                {userName?.charAt(0) || 'U'}
+              </div>
+              <div className="ml-2">
+                <p className="text-sm font-medium">{userName || 'User'}</p>
+                <p className="text-xs text-muted-foreground capitalize">{userRole} Plan</p>
+              </div>
+            </div>
+          </div>
         )}
-      </SidebarFooter>
+      </div>
     </Sidebar>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -92,12 +93,49 @@ const Home = () => {
                 </div>
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-serif">Landmark Cases</h2>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/landmark-cases">View All</Link>
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-border p-4">
+                    <p className="text-sm mb-4">
+                      Explore significant court cases that have shaped legal precedent and jurisprudence in India. 
+                      These landmark judgments represent pivotal moments in legal history.
+                    </p>
+                    <Button className="w-full" asChild>
+                      <Link to="/landmark-cases">Browse Landmark Cases</Link>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-serif">Explore Cases</h2>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/explore">View All</Link>
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-border p-4">
+                    <p className="text-sm mb-4">
+                      Browse through our extensive collection of regular court cases organized by categories. 
+                      Search the database or access external sources via Indian Kanoon integration.
+                    </p>
+                    <Button className="w-full" asChild>
+                      <Link to="/explore">Explore Case Database</Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-serif">Featured Landmark Cases</h2>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/landmark-cases">View All</Link>
-                  </Button>
+                  <h2 className="text-xl font-serif">Featured Cases</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

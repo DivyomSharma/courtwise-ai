@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { searchCases } from '@/utils/caseHelpers';
 
 const SearchBar = () => {
   const [query, setQuery] = useState('');
@@ -22,26 +22,11 @@ const SearchBar = () => {
     setIsSearching(true);
     
     try {
-      // Search for cases in Supabase using full text search
-      // This is a basic implementation - could be enhanced with more advanced search features
-      const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .or(`title.ilike.%${query}%,summary.ilike.%${query}%,full_text.ilike.%${query}%`)
-        .limit(20);
+      // Search for cases using our helper function
+      const results = await searchCases(query);
       
-      if (error) {
-        console.error('Search error:', error);
-        toast({
-          title: "Search failed",
-          description: "An error occurred while searching. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Store search results in local storage for the landmark cases page to use
-      localStorage.setItem('lastSearchResults', JSON.stringify(data || []));
+      // Store search results in local storage for the explore page to use
+      localStorage.setItem('lastSearchResults', JSON.stringify(results || []));
       localStorage.setItem('lastSearchQuery', query);
       
       toast({
@@ -49,8 +34,8 @@ const SearchBar = () => {
         description: `Looking up: "${query}"`,
       });
       
-      // Navigate to landmark cases with the search query
-      navigate(`/landmark-cases?q=${encodeURIComponent(query)}`);
+      // Navigate to explore page with the search query
+      navigate(`/explore?q=${encodeURIComponent(query)}`);
     } catch (error) {
       console.error('Search error:', error);
       toast({
