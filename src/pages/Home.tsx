@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { MenuIcon, Search, ArrowUp } from 'lucide-react';
@@ -12,20 +12,19 @@ import LegalNews from '@/components/LegalNews';
 import PromptSearch from '@/components/PromptSearch';
 import { useUser } from '@/context/UserContext';
 import { Link } from 'react-router-dom';
-import BreakingNews from '@/components/BreakingNews';
 
 const Home = () => {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const { isLoggedIn, userRole } = useUser();
-  const [showNewsColumn, setShowNewsColumn] = useState(true);
+  const [showPromptFocus, setShowPromptFocus] = useState(false);
 
   // Handle animation for prompt search focus
   const handlePromptFocus = () => {
-    setShowNewsColumn(false);
+    setShowPromptFocus(true);
   };
 
   const handlePromptBlur = () => {
-    setShowNewsColumn(true);
+    setShowPromptFocus(false);
   };
 
   return (
@@ -37,7 +36,11 @@ const Home = () => {
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="md:hidden">
-                <SidebarTrigger />
+                <SidebarTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MenuIcon className="h-5 w-5" />
+                  </Button>
+                </SidebarTrigger>
               </div>
               
               <h1 className="text-2xl md:text-3xl font-serif font-bold text-primary mx-auto">Courtwise AI</h1>
@@ -49,17 +52,7 @@ const Home = () => {
           </header>
           
           <div className="flex flex-1">
-            {/* Breaking News Column - Only visible on home page */}
-            {showNewsColumn && (
-              <div className="w-0 md:w-1/4 bg-background border-r border-border transition-all duration-300 overflow-hidden">
-                <div className="p-4 sticky top-0">
-                  <h2 className="text-xl font-serif mb-4">Breaking News</h2>
-                  <BreakingNews />
-                </div>
-              </div>
-            )}
-            
-            <div className={`${showNewsColumn ? 'w-full md:w-3/4' : 'w-full'} p-4 md:p-6 transition-all duration-300`}>
+            <div className="w-full p-4 md:p-6 transition-all duration-300">
               <div className="mb-8 text-center">
                 <h2 className="text-2xl md:text-3xl font-serif mb-2">Welcome to Courtwise AI</h2>
                 <p className="text-muted-foreground mb-8">Access a comprehensive library of Indian court cases and judgments with professional case notes and export capabilities.</p>

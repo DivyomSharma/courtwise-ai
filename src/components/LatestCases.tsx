@@ -1,33 +1,77 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
 
-const caseUpdates = [
-  {
-    id: 1,
-    title: 'Sharma vs. State of Maharashtra',
-    court: 'Supreme Court',
-    date: 'May 2, 2025',
-    category: 'Criminal',
-  },
-  {
-    id: 2,
-    title: 'Tech Solutions Ltd. vs. Data Corp',
-    court: 'Delhi High Court',
-    date: 'May 1, 2025',
-    category: 'IP',
-  },
-  {
-    id: 3,
-    title: 'R.K. Industries vs. Union of India',
-    court: 'Supreme Court',
-    date: 'Apr 29, 2025',
-    category: 'Constitutional',
-  },
-];
+interface CaseUpdate {
+  id: string;
+  title: string;
+  court: string;
+  date: string;
+  category: string;
+}
 
 const LatestCases = () => {
+  const [caseUpdates, setCaseUpdates] = useState<CaseUpdate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLatestCases();
+    
+    // Set up real-time subscription for live updates
+    const channel = supabase
+      .channel('public:cases')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'cases' 
+        }, 
+        (payload) => {
+          fetchLatestCases();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchLatestCases = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cases')
+        .select('id, title, court, date, category')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setCaseUpdates(data);
+      }
+    } catch (error) {
+      console.error('Error fetching latest cases:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -35,17 +79,27 @@ const LatestCases = () => {
         <CardDescription>Recently updated judgments</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {caseUpdates.map((item) => (
-          <div key={item.id} className="border-b pb-2 last:border-0 last:pb-0">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-medium text-sm">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.court} • {item.date}</p>
-              </div>
-              <Badge variant="outline" className="text-xs">{item.category}</Badge>
-            </div>
+        {loading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ))}
+        ) : caseUpdates.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground py-2">No recent case updates</p>
+        ) : (
+          caseUpdates.map((item) => (
+            <div key={item.id} className="border-b pb-2 last:border-0 last:pb-0">
+              <div className="flex items-start justify-between">
+                <div>
+                  <Link to={`/case/${item.id}`} className="group">
+                    <p className="font-medium text-sm group-hover:text-primary transition-colors">{item.title}</p>
+                  </Link>
+                  <p className="text-xs text-muted-foreground">{item.court} • {formatDate(item.date)}</p>
+                </div>
+                <Badge variant="outline" className="text-xs">{item.category}</Badge>
+              </div>
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );

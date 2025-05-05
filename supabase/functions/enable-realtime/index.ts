@@ -20,15 +20,26 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    const results = [];
+    
     // Execute SQL to enable real-time on legal_news table
     await supabaseAdmin.rpc('set_table_realtime', {
       table: 'legal_news',
       value: true
     });
+    results.push("Enabled realtime for legal_news table");
+    
+    // Execute SQL to enable real-time on cases table
+    await supabaseAdmin.rpc('set_table_realtime', {
+      table: 'cases',
+      value: true
+    });
+    results.push("Enabled realtime for cases table");
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: "Realtime enabled for legal_news table" 
+      message: "Realtime enabled for tables",
+      details: results
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

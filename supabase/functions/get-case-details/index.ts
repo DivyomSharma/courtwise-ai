@@ -19,9 +19,18 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Get the case ID from the query string
-    const url = new URL(req.url);
-    const caseId = url.searchParams.get('id');
+    let caseId = '';
+    
+    // Check if it's a GET or POST request and extract caseId accordingly
+    if (req.method === 'GET') {
+      // Get the case ID from the query string
+      const url = new URL(req.url);
+      caseId = url.searchParams.get('id') || '';
+    } else {
+      // Get the case ID from the request body
+      const requestData = await req.json();
+      caseId = requestData.id || '';
+    }
     
     if (!caseId) {
       return new Response(
@@ -29,6 +38,8 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    console.log('Searching for case with ID:', caseId);
 
     // First try to fetch by UUID
     let caseDetails = null;
@@ -41,6 +52,8 @@ serve(async (req) => {
       .eq('id', caseId)
       .maybeSingle();
     
+    console.log('UUID lookup result:', uuidData || 'none', uuidError ? `Error: ${uuidError.message}` : 'No error');
+
     if (!uuidError && uuidData) {
       caseDetails = uuidData;
     } else {
@@ -50,6 +63,8 @@ serve(async (req) => {
         .select('*')
         .ilike('title', `%${caseId.replace(/-/g, ' ')}%`)
         .maybeSingle();
+      
+      console.log('Title lookup result:', stringIdData || 'none', stringIdError ? `Error: ${stringIdError.message}` : 'No error');
       
       if (stringIdError) {
         error = stringIdError;
@@ -72,6 +87,8 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
+
+    console.log('Returning case details for:', caseDetails.title);
 
     // Return the case details
     return new Response(

@@ -1,28 +1,66 @@
-
 import React, { useState } from 'react';
-import { Search, ArrowUp } from 'lucide-react';
+import { Search, ArrowUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/context/UserContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const PromptSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isLoggedIn } = useUser();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    try {
       toast({
         title: "Search initiated",
         description: `Searching for: "${searchQuery}"`,
       });
       
-      // Navigate to landmark cases with the search query
+      // If the query is simple, just redirect to landmark cases
+      if (searchQuery.length < 10 || searchQuery.split(' ').length < 3) {
+        navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
+        return;
+      }
+      
+      // For more complex queries, use AI search
+      const { data, error } = await supabase.functions.invoke('ai-search', {
+        body: { query: searchQuery }
+      });
+      
+      if (error) throw error;
+      
+      if (data && data.results) {
+        // If AI found specific cases, navigate to the first one
+        if (data.results.specificCase) {
+          navigate(`/case/${data.results.specificCase}`);
+        } else {
+          // Otherwise navigate to search results with AI-enhanced params
+          navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(data.results.suggestedCategory || '')}`);
+        }
+      } else {
+        // Fallback to regular search
+        navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      toast({
+        title: "Search error",
+        description: "There was a problem processing your search. Using regular search instead.",
+        variant: "destructive"
+      });
       navigate(`/landmark-cases?q=${encodeURIComponent(searchQuery)}`);
+    } finally {
+      setIsSearching(false);
     }
   };
   
@@ -56,8 +94,13 @@ const PromptSearch = () => {
               type="submit" 
               size="sm" 
               className="h-10 w-10 rounded-full p-0 flex items-center justify-center"
+              disabled={isSearching}
             >
-              <ArrowUp className="h-5 w-5" />
+              {isSearching ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <ArrowUp className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>

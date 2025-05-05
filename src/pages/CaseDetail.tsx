@@ -89,41 +89,26 @@ const CaseDetail = () => {
     setLoading(true);
     
     try {
-      // First try to fetch from Supabase directly
-      const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .eq('id', caseId)
-        .maybeSingle();
-
+      // Call the get-case-details edge function
+      const { data, error } = await supabase.functions.invoke('get-case-details', {
+        body: { 
+          id: caseId 
+        }
+      });
+      
       if (error) {
         throw error;
       }
-      
-      if (data) {
-        setCaseDetails(data as CaseDetails);
+
+      if (data && data.caseDetails) {
+        setCaseDetails(data.caseDetails as CaseDetails);
       } else {
-        // If not found by UUID, try to fetch by title (string ID)
-        const { data: titleData, error: titleError } = await supabase
-          .from('cases')
-          .select('*')
-          .ilike('title', `%${caseId.replace(/-/g, ' ')}%`)
-          .maybeSingle();
-
-        if (titleError) {
-          throw titleError;
-        }
-
-        if (titleData) {
-          setCaseDetails(titleData as CaseDetails);
-        } else {
-          toast({
-            title: "Case not found",
-            description: "The requested case could not be found.",
-            variant: "destructive",
-          });
-          navigate('/landmark-cases');
-        }
+        toast({
+          title: "Case not found",
+          description: "The requested case could not be found.",
+          variant: "destructive",
+        });
+        navigate('/landmark-cases');
       }
     } catch (error) {
       console.error('Error fetching case details:', error);

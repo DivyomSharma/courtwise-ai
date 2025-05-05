@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Landmark, User, Folder, LogOut, Settings, Bell } from 'lucide-react';
 import {
@@ -35,7 +35,7 @@ const categoriesList = [
 ];
 
 const AppSidebar = () => {
-  const [isExploreOpen, setIsExploreOpen] = React.useState(false);
+  const [isExploreOpen, setIsExploreOpen] = React.useState(true); // Changed to true by default
   const { isLoggedIn, userName, userRole, logout, remainingCases } = useUser();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -143,7 +143,7 @@ const AppSidebar = () => {
                   {categoriesList.map((category) => (
                     <div key={category} className="rounded-md hover:bg-accent">
                       <Link
-                        to={`/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
+                        to={`/landmark-cases?category=${encodeURIComponent(category.toLowerCase())}`}
                         className="block px-2 py-1.5 text-sm"
                       >
                         {category}
