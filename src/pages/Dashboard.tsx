@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -154,7 +153,7 @@ const Dashboard = () => {
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
-                <SidebarTrigger asChild>
+                <SidebarTrigger>
                   <Button variant="ghost" size="icon" className="md:hidden mr-2">
                     <MenuIcon className="h-5 w-5" />
                   </Button>

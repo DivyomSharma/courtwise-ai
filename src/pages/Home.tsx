@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ const Home = () => {
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="md:hidden">
-                <SidebarTrigger asChild>
+                <SidebarTrigger>
                   <Button variant="ghost" size="icon">
                     <MenuIcon className="h-5 w-5" />
                   </Button>
