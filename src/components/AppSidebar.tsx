@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sidebar, SidebarClose } from '@/components/ui/sidebar';
+import { Sidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { 
   Home, 
@@ -28,13 +27,13 @@ const AppSidebar = () => {
           <Link to="/" className="flex items-center">
             <span className="font-serif text-xl font-bold">Courtwise AI</span>
           </Link>
-          <SidebarClose>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <X className="h-5 w-5" />
-              <span className="sr-only">Close sidebar</span>
-            </Button>
-          </SidebarClose>
+          {/* Remove SidebarClose and replace with a standard Button */}
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close sidebar</span>
+          </Button>
         </div>
+        
         
         <ScrollArea className="flex-1 overflow-auto">
           <nav className="p-4 space-y-2">
