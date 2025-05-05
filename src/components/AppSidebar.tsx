@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -70,11 +71,11 @@ const AppSidebar = () => {
               <h3 className="text-sm font-medium mb-2 text-muted-foreground">Case Library</h3>
               <div className="space-y-1">
                 <Button 
-                  variant={location.pathname === '/landmark-cases' ? "secondary" : "ghost"}
+                  variant={location.pathname === '/#landmark-cases' ? "secondary" : "ghost"}
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link to="/landmark-cases">
+                  <Link to="/#landmark-cases">
                     <BookOpen className="h-4 w-4 mr-2" />
                     Landmark Cases
                   </Link>
