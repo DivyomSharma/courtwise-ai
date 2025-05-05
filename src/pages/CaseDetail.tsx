@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AddCaseNote from '@/components/AddCaseNote';
 import CaseNotes from '@/components/CaseNotes';
 import { format } from 'date-fns';
+import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
 
 interface CaseDetails {
   id: string;
@@ -89,7 +90,25 @@ const CaseDetail = () => {
     setLoading(true);
     
     try {
-      // Call the get-case-details edge function
+      // First check if it's a landmark case
+      const landmarkCase = LANDMARK_CASES.find(c => c.id === caseId);
+      
+      if (landmarkCase) {
+        // Format landmark case to match CaseDetails interface
+        setCaseDetails({
+          ...landmarkCase,
+          judges: landmarkCase.judges || [],
+          petitioner: landmarkCase.petitioner || null,
+          respondent: landmarkCase.respondent || null,
+          full_text: landmarkCase.full_text || null,
+          key_points: landmarkCase.key_points || null,
+          related_cases: landmarkCase.related_cases || null
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // If not a landmark case, call the edge function
       const { data, error } = await supabase.functions.invoke('get-case-details', {
         body: { 
           id: caseId 
@@ -213,6 +232,7 @@ const CaseDetail = () => {
     );
   }
 
+  
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -432,11 +452,11 @@ const CaseDetail = () => {
             
             <div className="flex justify-between items-center">
               <Button variant="outline" asChild>
-                <Link to="/dashboard">Back to Dashboard</Link>
+                <Link to="/landmark-cases">Back to Landmark Cases</Link>
               </Button>
               
               <Button variant="default" asChild>
-                <Link to="/landmark-cases">View More Cases</Link>
+                <Link to="/explore">Explore More Cases</Link>
               </Button>
             </div>
           </div>

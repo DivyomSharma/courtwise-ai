@@ -1,102 +1,29 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { MenuIcon, Search } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Case {
-  id: string;
-  title: string;
-  citation: string;
-  court: string;
-  date: string;
-  category: string;
-  summary: string;
-  importance?: string;
-}
+import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
 
 const LandmarkCases = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [cases, setCases] = useState<Case[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch cases on mount
-  useEffect(() => {
-    fetchCases();
-  }, []);
-
-  // Parse search query from URL on component mount
-  useEffect(() => {
-    const query = new URLSearchParams(location.search).get('q');
-    if (query) {
-      setSearchQuery(query);
-      filterCases(query, activeCategory);
-    }
-  }, [location.search]);
-
-  const fetchCases = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .order('date', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        const formattedCases = data.map(caseItem => {
-          // Format date if it's a valid date string
-          let formattedDate;
-          try {
-            formattedDate = new Date(caseItem.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            });
-          } catch (e) {
-            formattedDate = caseItem.date || 'Unknown date';
-          }
-
-          return {
-            ...caseItem,
-            date: formattedDate,
-            importance: caseItem.key_points && caseItem.key_points.length > 3 ? 'High' : 'Medium'
-          };
-        });
-        setCases(formattedCases);
-        filterCases(searchQuery, activeCategory, formattedCases);
-      }
-    } catch (error) {
-      console.error('Error fetching cases:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load landmark cases. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Filter cases based on search query and category
-  const filterCases = (query: string, category: string, casesArray = cases) => {
-    let filtered = [...casesArray];
+  const [filteredCases, setFilteredCases] = useState(LANDMARK_CASES);
+  
+  // Get unique categories for the tab filters
+  const uniqueCategories = [...new Set(LANDMARK_CASES.map(c => c.category))];
+  
+  const filterCases = (query: string, category: string) => {
+    let filtered = [...LANDMARK_CASES];
     
     // Filter by category if not 'all'
     if (category !== 'all') {
@@ -114,22 +41,13 @@ const LandmarkCases = () => {
       );
     }
     
-    setCases(filtered);
+    setFilteredCases(filtered);
   };
 
   // Handle category change
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
     filterCases(searchQuery, category);
-    
-    // Update URL without triggering a page reload
-    const params = new URLSearchParams(location.search);
-    if (searchQuery) {
-      params.set('q', searchQuery);
-    } else {
-      params.delete('q');
-    }
-    navigate(`${location.pathname}?${params.toString()}`);
   };
 
   // Handle search submit
@@ -137,16 +55,9 @@ const LandmarkCases = () => {
     e.preventDefault();
     filterCases(searchQuery, activeCategory);
     
-    // Update URL with search query
-    const params = new URLSearchParams();
-    if (searchQuery) {
-      params.set('q', searchQuery);
-    }
-    navigate(`${location.pathname}?${params.toString()}`);
-    
     toast({
       title: "Search Results",
-      description: searchQuery ? `Showing results for "${searchQuery}"` : "Showing all cases",
+      description: searchQuery ? `Showing results for "${searchQuery}"` : "Showing all landmark cases",
     });
   };
 
@@ -188,7 +99,7 @@ const LandmarkCases = () => {
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input 
                     type="search" 
-                    placeholder="Search cases..." 
+                    placeholder="Search landmark cases..." 
                     className="pl-9 bg-white"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -200,24 +111,17 @@ const LandmarkCases = () => {
             <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="mb-8">
               <TabsList className="mb-4">
                 <TabsTrigger value="all">All Categories</TabsTrigger>
-                <TabsTrigger value="Constitutional">Constitutional</TabsTrigger>
-                <TabsTrigger value="Criminal">Criminal</TabsTrigger>
-                <TabsTrigger value="Environmental">Environmental</TabsTrigger>
-                <TabsTrigger value="Family">Family</TabsTrigger>
-                <TabsTrigger value="Labour">Labour</TabsTrigger>
-                <TabsTrigger value="Administrative">Administrative</TabsTrigger>
+                {uniqueCategories.map(category => (
+                  <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                ))}
               </TabsList>
               
               <TabsContent value={activeCategory} className="mt-2">
-                {isLoading ? (
-                  <div className="text-center py-10">
-                    <p className="text-muted-foreground">Loading cases...</p>
-                  </div>
-                ) : cases.length > 0 ? (
+                {filteredCases.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {cases.map((caseData) => (
+                    {filteredCases.map((caseData) => (
                       <Card key={caseData.id} className="overflow-hidden">
-                        <div className={`h-1.5 ${caseData.importance === 'High' ? 'bg-primary' : 'bg-muted'}`}></div>
+                        <div className="h-1.5 bg-primary"></div>
                         <CardContent className="p-4">
                           <div className="mb-3">
                             <h3 className="font-serif font-semibold text-lg">{caseData.title}</h3>
@@ -230,12 +134,7 @@ const LandmarkCases = () => {
                               <span className="mx-1.5">•</span>
                               <span className="text-muted-foreground">{caseData.date}</span>
                             </div>
-                            <div className="flex gap-2">
-                              <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
-                              <Badge variant={caseData.importance === 'High' ? 'default' : 'outline'} className="text-xs">
-                                {caseData.importance}
-                              </Badge>
-                            </div>
+                            <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
                           </div>
                           
                           <p className="text-sm">{caseData.summary}</p>
@@ -260,8 +159,7 @@ const LandmarkCases = () => {
                     <Button variant="outline" onClick={() => {
                       setSearchQuery('');
                       setActiveCategory('all');
-                      fetchCases();
-                      navigate('/landmark-cases');
+                      setFilteredCases(LANDMARK_CASES);
                     }}>
                       View All Cases
                     </Button>

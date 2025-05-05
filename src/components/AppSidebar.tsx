@@ -28,7 +28,7 @@ const AppSidebar = () => {
           <Link to="/" className="flex items-center">
             <span className="font-serif text-xl font-bold">Courtwise AI</span>
           </Link>
-          {/* Remove SidebarClose and replace with a standard Button */}
+          {/* Button for closing sidebar on mobile */}
           <Button variant="ghost" size="icon" className="md:hidden">
             <X className="h-5 w-5" />
             <span className="sr-only">Close sidebar</span>
@@ -71,11 +71,11 @@ const AppSidebar = () => {
               <h3 className="text-sm font-medium mb-2 text-muted-foreground">Case Library</h3>
               <div className="space-y-1">
                 <Button 
-                  variant={location.pathname === '/#landmark-cases' ? "secondary" : "ghost"}
+                  variant={location.pathname === '/landmark-cases' ? "secondary" : "ghost"}
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link to="/#landmark-cases">
+                  <Link to="/landmark-cases">
                     <BookOpen className="h-4 w-4 mr-2" />
                     Landmark Cases
                   </Link>
