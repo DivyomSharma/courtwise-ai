@@ -198,11 +198,11 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className={userRole === 'premium' ? "border-primary" : ""}>
+                <Card className={userRole === 'subscriber' ? "border-primary" : ""}>
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-base">Premium Plan</CardTitle>
-                      {userRole === 'premium' && <Badge>Current Plan</Badge>}
+                      {userRole === 'subscriber' && <Badge>Current Plan</Badge>}
                     </div>
                     <CardDescription>Enhanced access</CardDescription>
                   </CardHeader>
@@ -216,17 +216,17 @@ const Dashboard = () => {
                         <li className="flex items-center">• Export functionality</li>
                       </ul>
                     </div>
-                    {userRole !== 'premium' && (
+                    {userRole !== 'subscriber' && (
                       <Button className="w-full mt-4">Upgrade to Premium</Button>
                     )}
                   </CardContent>
                 </Card>
                 
-                <Card className={userRole === 'enterprise' ? "border-primary" : ""}>
+                <Card className={userRole === 'admin' ? "border-primary" : ""}>
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-base">Enterprise Plan</CardTitle>
-                      {userRole === 'enterprise' && <Badge>Current Plan</Badge>}
+                      {userRole === 'admin' && <Badge>Current Plan</Badge>}
                     </div>
                     <CardDescription>Full professional access</CardDescription>
                   </CardHeader>
@@ -240,7 +240,7 @@ const Dashboard = () => {
                         <li className="flex items-center">• Priority support</li>
                       </ul>
                     </div>
-                    {userRole !== 'enterprise' && (
+                    {userRole !== 'admin' && (
                       <Button className="w-full mt-4">Contact Sales</Button>
                     )}
                   </CardContent>
