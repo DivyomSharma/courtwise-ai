@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import { CaseSearchResult, fetchCasesByCategory, fetchAllCases } from '@/utils/caseHelpers';
+import { useToast } from '@/hooks/use-toast';
 
 // Imported refactored components
 import ExploreHeader from '@/components/explore/ExploreHeader';
@@ -11,10 +12,11 @@ import ExploreSearchSection from '@/components/explore/ExploreSearchSection';
 import ExploreResultsSection from '@/components/explore/ExploreResultsSection';
 
 const Explore = () => {
+  const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchResults, setSearchResults] = useState<CaseSearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   
   // Parse query params
@@ -63,9 +65,22 @@ const Explore = () => {
       } else {
         results = await fetchAllCases();
       }
+      
+      if (results.length === 0) {
+        toast({
+          title: "No cases found",
+          description: "We couldn't find any cases. Sample data has been generated.",
+        });
+      }
+      
       setSearchResults(results);
     } catch (error) {
       console.error('Error loading initial results:', error);
+      toast({
+        title: "Error loading cases",
+        description: "There was an error loading the cases. Sample data has been generated.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -99,6 +114,11 @@ const Explore = () => {
       setSearchResults(results);
     } catch (error) {
       console.error('Error loading category results:', error);
+      toast({
+        title: "Error loading cases",
+        description: "There was an error loading cases for this category. Sample data has been generated.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

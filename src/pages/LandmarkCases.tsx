@@ -1,39 +1,51 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { MenuIcon, Search, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MenuIcon, Search, Loader2, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
+import { getLandmarkCasesForHome, CaseSearchResult } from '@/utils/caseHelpers';
 
 const LandmarkCases = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [filteredCases, setFilteredCases] = useState(LANDMARK_CASES);
+  const [filteredCases, setFilteredCases] = useState<CaseSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Get landmark cases - either from predefined data or generated
+  const landmarkCases = useMemo(() => {
+    // If we have less than 50 predefined cases, supplement with generated ones
+    return LANDMARK_CASES.length >= 50 
+      ? LANDMARK_CASES 
+      : [...LANDMARK_CASES, ...getLandmarkCasesForHome(50 - LANDMARK_CASES.length)];
+  }, []);
+  
   // Get unique categories for the tab filters
-  const uniqueCategories = [...new Set(LANDMARK_CASES.map(c => c.category))];
+  const uniqueCategories = useMemo(() => {
+    return [...new Set(landmarkCases.map(c => c.category))];
+  }, [landmarkCases]);
   
   // Initialize with all cases
   useEffect(() => {
-    setFilteredCases(LANDMARK_CASES);
+    setFilteredCases(landmarkCases);
     setLoading(false);
-  }, []);
+  }, [landmarkCases]);
 
   const filterCases = (query: string, category: string) => {
     setLoading(true);
     
     try {
-      let filtered = [...LANDMARK_CASES];
+      let filtered = [...landmarkCases];
       
       // Filter by category if not 'all'
       if (category !== 'all') {
@@ -86,7 +98,7 @@ const LandmarkCases = () => {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         
-        <main className="flex-1">
+        <main className="flex-1 bg-background">
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
@@ -97,6 +109,15 @@ const LandmarkCases = () => {
                     </Button>
                   </SidebarTrigger>
                 </div>
+                
+                <Button 
+                  variant="ghost" 
+                  className="mr-2"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-5 w-5 mr-1" />
+                  <span className="hidden sm:inline">Back</span>
+                </Button>
                 
                 <h1 className="text-xl md:text-2xl font-serif font-bold">Landmark Cases</h1>
               </div>
@@ -129,12 +150,14 @@ const LandmarkCases = () => {
             </div>
             
             <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="mb-8">
-              <TabsList className="mb-4 flex flex-wrap">
-                <TabsTrigger value="all">All Categories</TabsTrigger>
-                {uniqueCategories.map(category => (
-                  <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-                ))}
-              </TabsList>
+              <div className="overflow-x-auto">
+                <TabsList className="mb-4 inline-flex w-max">
+                  <TabsTrigger value="all">All Categories</TabsTrigger>
+                  {uniqueCategories.map(category => (
+                    <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
               
               <TabsContent value={activeCategory} className="mt-2">
                 {loading ? (
@@ -144,7 +167,7 @@ const LandmarkCases = () => {
                 ) : filteredCases.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {filteredCases.map((caseData) => (
-                      <Card key={caseData.id} className="overflow-hidden">
+                      <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
                         <div className="h-1.5 bg-primary"></div>
                         <CardContent className="p-4">
                           <div className="mb-3">
@@ -183,7 +206,7 @@ const LandmarkCases = () => {
                     <Button variant="outline" onClick={() => {
                       setSearchQuery('');
                       setActiveCategory('all');
-                      setFilteredCases(LANDMARK_CASES);
+                      setFilteredCases(landmarkCases);
                     }}>
                       View All Cases
                     </Button>
