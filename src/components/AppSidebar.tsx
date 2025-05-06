@@ -87,18 +87,9 @@ const AppSidebar = () => {
                   asChild
                 >
                   <Link to="/explore">
-                    <List className="h-4 w-4 mr-2" />
+                    <Search className="h-4 w-4 mr-2" />
                     Explore Cases
                   </Link>
-                </Button>
-                
-                <Button 
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => window.open('https://indiankanoon.org/', '_blank')}
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  Indian Kanoon
                 </Button>
               </div>
             </div>

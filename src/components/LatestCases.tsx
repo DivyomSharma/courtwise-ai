@@ -13,6 +13,7 @@ interface CaseUpdate {
   court: string;
   date: string;
   category: string;
+  url?: string;
 }
 
 const LatestCases = () => {
@@ -44,18 +45,46 @@ const LatestCases = () => {
 
   const fetchLatestCases = async () => {
     try {
-      const { data, error } = await supabase
+      // First try to fetch from our database
+      let { data, error } = await supabase
         .from('cases')
         .select('id, title, court, date, category')
         .order('created_at', { ascending: false })
-        .limit(3);
+        .limit(5);
       
       if (error) {
         throw error;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         setCaseUpdates(data);
+      } else {
+        // If no recent cases in our database, fetch from LiveLaw.in via edge function
+        const { data: liveCases, error: liveError } = await supabase.functions.invoke('fetch-news', {
+          body: { source: 'livelaw', type: 'cases' }
+        });
+        
+        if (liveError) throw liveError;
+        
+        if (liveCases && liveCases.cases) {
+          setCaseUpdates(liveCases.cases);
+          
+          // Store fetched cases in our database for future access
+          if (liveCases.cases.length > 0) {
+            // Convert to the format our database expects
+            const casesForStorage = liveCases.cases.map((item: any) => ({
+              title: item.title,
+              court: item.court || 'Unknown Court',
+              date: item.date || new Date().toISOString().split('T')[0],
+              category: item.category || 'General',
+              summary: item.summary || item.title,
+              citation: item.citation || '',
+              url: item.url
+            }));
+            
+            await supabase.from('cases').insert(casesForStorage);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching latest cases:', error);
@@ -76,7 +105,7 @@ const LatestCases = () => {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-serif">Latest Cases</CardTitle>
-        <CardDescription>Recently updated judgments</CardDescription>
+        <CardDescription>Recently updated judgments from LiveLaw.in</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
@@ -90,9 +119,15 @@ const LatestCases = () => {
             <div key={item.id} className="border-b pb-2 last:border-0 last:pb-0">
               <div className="flex items-start justify-between">
                 <div>
-                  <Link to={`/case/${item.id}`} className="group">
-                    <p className="font-medium text-sm group-hover:text-primary transition-colors">{item.title}</p>
-                  </Link>
+                  {item.url ? (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="group">
+                      <p className="font-medium text-sm group-hover:text-primary transition-colors">{item.title}</p>
+                    </a>
+                  ) : (
+                    <Link to={`/case/${item.id}`} className="group">
+                      <p className="font-medium text-sm group-hover:text-primary transition-colors">{item.title}</p>
+                    </Link>
+                  )}
                   <p className="text-xs text-muted-foreground">{item.court} • {formatDate(item.date)}</p>
                 </div>
                 <Badge variant="outline" className="text-xs">{item.category}</Badge>

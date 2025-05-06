@@ -42,18 +42,43 @@ const LegalNews = () => {
 
   const fetchLegalNews = async () => {
     try {
-      const { data, error } = await supabase
+      // First try to fetch from Supabase
+      let { data, error } = await supabase
         .from('legal_news')
         .select('id, title, source, published_date, url')
         .order('published_date', { ascending: false })
-        .limit(3);
+        .limit(5);
       
       if (error) {
         throw error;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         setNewsItems(data);
+      } else {
+        // If no data in Supabase, fetch from LiveLaw.in via edge function
+        const { data: liveData, error: liveError } = await supabase.functions.invoke('fetch-news', {
+          body: { source: 'livelaw' }
+        });
+        
+        if (liveError) throw liveError;
+        
+        if (liveData && liveData.news) {
+          setNewsItems(liveData.news);
+          
+          // Store fetched news in Supabase for future use
+          if (liveData.news.length > 0) {
+            // Convert to Supabase format
+            const newsForStorage = liveData.news.map((item: any) => ({
+              title: item.title,
+              source: item.source || 'LiveLaw.in',
+              published_date: item.published_date || new Date().toISOString(),
+              url: item.url
+            }));
+            
+            await supabase.from('legal_news').insert(newsForStorage);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching legal news:', error);
@@ -74,7 +99,7 @@ const LegalNews = () => {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-serif">Legal News</CardTitle>
-        <CardDescription>Personalized for you</CardDescription>
+        <CardDescription>Latest updates from LiveLaw.in</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (

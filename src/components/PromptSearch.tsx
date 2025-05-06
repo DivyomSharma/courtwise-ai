@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/integrations/supabase/client';
-import { searchCases, searchIndianKanoon } from '@/utils/caseHelpers';
+import { searchCases } from '@/utils/caseHelpers';
 
 const PromptSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,13 +60,8 @@ const PromptSearch = () => {
         }
       }
       
-      // If no results or no AI enhancement, use indiankanoon.org as backup
-      toast({
-        title: "External search",
-        description: "Searching Indian Kanoon for more comprehensive results.",
-      });
-      
-      searchIndianKanoon(searchQuery);
+      // If no results or no AI enhancement, navigate to explore with the query
+      navigate(`/explore?q=${encodeURIComponent(searchQuery)}`);
       
     } catch (error) {
       console.error("Search error:", error);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -6,10 +7,10 @@ import { MenuIcon, ArrowLeft } from 'lucide-react';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
 import { Separator } from '@/components/ui/separator';
-import IndianKanoonSearch from '@/components/IndianKanoonSearch';
+import CaseSearch from '@/components/IndianKanoonSearch';
 import CaseCategories from '@/components/CaseCategories';
 import CaseResultsList from '@/components/CaseResultsList';
-import { CaseSearchResult, fetchCasesByCategory } from '@/utils/caseHelpers';
+import { CaseSearchResult, fetchCasesByCategory, fetchAllCases } from '@/utils/caseHelpers';
 
 const Explore = () => {
   const location = useLocation();
@@ -41,18 +42,36 @@ const Explore = () => {
           setSearchResults(JSON.parse(cachedResults));
           setLoading(false);
         } catch (e) {
-          // If parsing fails, load from category
-          loadCategoryResults(selectedCategory);
+          // If parsing fails, load from category or all cases
+          loadInitialResults();
         }
       } else {
-        // No cached results, load by category
-        loadCategoryResults(selectedCategory);
+        // No cached results, load by category or all cases
+        loadInitialResults();
       }
     } else {
-      // No search query, load by category
-      loadCategoryResults(selectedCategory);
+      // No search query, load by category or all cases
+      loadInitialResults();
     }
   }, [searchQuery, categoryParam]);
+  
+  // Load initial results - either from category or all cases
+  const loadInitialResults = async () => {
+    setLoading(true);
+    try {
+      let results;
+      if (selectedCategory) {
+        results = await fetchCasesByCategory(selectedCategory);
+      } else {
+        results = await fetchAllCases();
+      }
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error loading initial results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Load results when category changes
   useEffect(() => {
@@ -71,19 +90,20 @@ const Explore = () => {
   }, [selectedCategory]);
   
   const loadCategoryResults = async (category?: string) => {
-    if (!category) {
-      // If no category is selected and we have search results already, keep them
-      if (searchResults.length > 0) {
-        return;
-      }
-      // Otherwise load default category
-      category = 'Constitutional';
-    }
-    
     setLoading(true);
-    const results = await fetchCasesByCategory(category);
-    setSearchResults(results);
-    setLoading(false);
+    try {
+      let results;
+      if (category) {
+        results = await fetchCasesByCategory(category);
+      } else {
+        results = await fetchAllCases();
+      }
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error loading category results:', error);
+    } finally {
+      setLoading(false);
+    }
   };
   
   const handleCategorySelect = (category: string) => {
@@ -137,12 +157,12 @@ const Explore = () => {
           
           <div className="container mx-auto px-4 py-6">
             <div className="mb-6">
-              <IndianKanoonSearch 
+              <CaseSearch 
                 onSearchResults={handleSearchResults}
                 onSearchLoading={handleSearchLoading}
               />
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Search local database or click "External" to search on Indian Kanoon
+                Search our comprehensive case database
               </p>
             </div>
             
