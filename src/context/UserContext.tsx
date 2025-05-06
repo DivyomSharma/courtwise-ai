@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,11 @@ interface UserProfile {
   full_name: string | null;
   avatar_url: string | null;
   role: 'free' | 'subscriber' | 'admin';
+  profession_type?: string | null;
+  qualification?: string | null;
+  experience_years?: string | null;
+  specialization?: string | null;
+  bio?: string | null;
 }
 
 interface UserContextType {
@@ -18,13 +22,14 @@ interface UserContextType {
   session: Session | null;
   profile: UserProfile | null;
   userRole: 'free' | 'subscriber' | 'admin';
-  userName: string;  // Added userName property
+  userName: string;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, fullName: string, role: 'free' | 'subscriber' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   remainingCases: number;
   decrementRemainingCases: () => void;
   loading: boolean;
+  updateProfile?: (updatedProfile: UserProfile) => void;  // Add this new property
 }
 
 const UserContext = createContext<UserContextType>({
@@ -40,6 +45,7 @@ const UserContext = createContext<UserContextType>({
   remainingCases: 0,
   decrementRemainingCases: () => {},
   loading: true,
+  updateProfile: undefined,
 });
 
 export const useUser = () => useContext(UserContext);
@@ -244,6 +250,25 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
+  // Update profile function - add this new function
+  const updateProfile = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+    // Update userName when profile is updated
+    setUserName(updatedProfile.full_name || updatedProfile.username || 'User');
+    
+    // Update role if it has changed
+    if (updatedProfile.role && updatedProfile.role !== userRole) {
+      setUserRole(updatedProfile.role);
+      
+      // Update remaining cases based on new role
+      if (updatedProfile.role === 'free') {
+        if (user) fetchDailyUsage(user.id);
+      } else {
+        setRemainingCases(Infinity);
+      }
+    }
+  };
+  
   const decrementRemainingCases = async () => {
     if (!user || userRole !== 'free' || remainingCases <= 0) return;
     
@@ -284,13 +309,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile,
     userRole,
-    userName, // Expose userName in the context
+    userName,
     login,
     signup,
     logout,
     remainingCases,
     decrementRemainingCases,
-    loading
+    loading,
+    updateProfile  // Add the update profile function to the context value
   };
   
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

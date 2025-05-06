@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CaseSearchResult {
@@ -8,6 +9,13 @@ export interface CaseSearchResult {
   date: string;
   category: string;
   summary: string;
+}
+
+export interface CaseCategory {
+  id: string;
+  name: string;
+  description: string;
+  count: number;
 }
 
 export const searchCases = async (query: string): Promise<CaseSearchResult[]> => {
@@ -23,6 +31,37 @@ export const searchCases = async (query: string): Promise<CaseSearchResult[]> =>
     return data || [];
   } catch (error) {
     console.error('Search error:', error);
+    return [];
+  }
+};
+
+// Function to format case dates
+export const formatCaseDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return dateString;
+  }
+};
+
+// Function to fetch case categories
+export const fetchCaseCategories = async (): Promise<CaseCategory[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('case_categories')
+      .select('id, name, description, count')
+      .order('name');
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching case categories:', error);
     return [];
   }
 };
