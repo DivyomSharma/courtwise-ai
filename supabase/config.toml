@@ -1,23 +1,41 @@
 
 project_id = "adgqwzazspqhpdmtwhkg"
 
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[storage]
+enabled = true
+
+[realtime]
+enabled = true
+
+[functions.fetch-news]
+verify_jwt = false
+
 [functions.get-case-details]
 verify_jwt = false
 
-[functions.seed-data]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = true
-
-[functions.check-subscription]
-verify_jwt = true
-
-[functions.customer-portal]
-verify_jwt = true
-
-[functions.enable-realtime]
-verify_jwt = true
-
-[functions.ai-search]
-verify_jwt = false
+[analytics]
+enabled = false
+port = 54327
+vector_port = 54328

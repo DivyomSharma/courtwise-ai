@@ -16,20 +16,21 @@ interface NewsItem {
 const LegalNews = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLegalNews();
     
     // Set up real-time subscription for live updates
     const channel = supabase
-      .channel('public:legal_news')
+      .channel('legal-news-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'legal_news' 
         }, 
-        (payload) => {
+        () => {
           fetchLegalNews();
         }
       )
@@ -42,6 +43,9 @@ const LegalNews = () => {
 
   const fetchLegalNews = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       // First try to fetch from Supabase
       let { data, error } = await supabase
         .from('legal_news')
@@ -56,20 +60,23 @@ const LegalNews = () => {
       if (data && data.length > 0) {
         setNewsItems(data);
       } else {
+        console.log("No data in database, fetching from LiveLaw.in");
         // If no data in Supabase, fetch from LiveLaw.in via edge function
-        const { data: liveData, error: liveError } = await supabase.functions.invoke('fetch-news', {
+        const response = await supabase.functions.invoke('fetch-news', {
           body: { source: 'livelaw' }
         });
         
-        if (liveError) throw liveError;
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
         
-        if (liveData && liveData.news) {
-          setNewsItems(liveData.news);
+        if (response.data && response.data.news) {
+          setNewsItems(response.data.news);
           
           // Store fetched news in Supabase for future use
-          if (liveData.news.length > 0) {
+          if (response.data.news.length > 0) {
             // Convert to Supabase format
-            const newsForStorage = liveData.news.map((item: any) => ({
+            const newsForStorage = response.data.news.map((item: any) => ({
               title: item.title,
               source: item.source || 'LiveLaw.in',
               published_date: item.published_date || new Date().toISOString(),
@@ -82,6 +89,7 @@ const LegalNews = () => {
       }
     } catch (error) {
       console.error('Error fetching legal news:', error);
+      setError('Failed to load news. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -105,6 +113,16 @@ const LegalNews = () => {
         {loading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-sm text-red-500 py-2">
+            {error}
+            <button 
+              className="block mx-auto mt-2 text-sm text-primary underline"
+              onClick={() => fetchLegalNews()}
+            >
+              Try Again
+            </button>
           </div>
         ) : newsItems.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-2">No recent news</p>

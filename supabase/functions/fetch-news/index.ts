@@ -19,24 +19,45 @@ interface CaseItem {
   url?: string;
 }
 
+// CORS headers for browser access
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204 
+    });
+  }
+  
   try {
     const { source, type = 'news' } = await req.json();
     
     // Currently only supporting LiveLaw.in
     if (source !== 'livelaw') {
       return new Response(JSON.stringify({ error: 'Source not supported' }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
     }
 
     // Different URL based on the type
     const url = type === 'cases' 
-      ? 'https://www.livelaw.in/cj-stories/supreme-court-judgments/'
+      ? 'https://www.livelaw.in/top-stories/supreme-court-judgments/'
       : 'https://www.livelaw.in/top-stories/';
 
-    const response = await fetch(url);
+    console.log(`Fetching from URL: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch from LiveLaw.in: ${response.status}`);
     }
@@ -52,7 +73,7 @@ serve(async (req) => {
     if (type === 'cases') {
       // Parse cases
       const caseArticles = document.querySelectorAll('article.item-list');
-      const cases: CaseItem[] = Array.from(caseArticles).slice(0, 5).map((article, index) => {
+      const cases: CaseItem[] = Array.from(caseArticles || []).slice(0, 5).map((article, index) => {
         const titleElement = article.querySelector('h2.post-title a');
         const dateElement = article.querySelector('.date');
         
@@ -74,12 +95,12 @@ serve(async (req) => {
       });
 
       return new Response(JSON.stringify({ cases }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
       // Parse news
       const newsArticles = document.querySelectorAll('article.item-list');
-      const news: NewsItem[] = Array.from(newsArticles).slice(0, 5).map((article, index) => {
+      const news: NewsItem[] = Array.from(newsArticles || []).slice(0, 5).map((article, index) => {
         const titleElement = article.querySelector('h2.post-title a');
         const dateElement = article.querySelector('.date');
         const articleUrl = titleElement?.getAttribute('href') || '';
@@ -94,7 +115,7 @@ serve(async (req) => {
       });
 
       return new Response(JSON.stringify({ news }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
   } catch (error) {
@@ -104,7 +125,7 @@ serve(async (req) => {
       error: 'Failed to fetch news',
       details: error.message 
     }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }

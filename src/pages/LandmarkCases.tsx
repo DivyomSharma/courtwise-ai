@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { MenuIcon, Search } from 'lucide-react';
+import { MenuIcon, Search, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AppSidebar from '@/components/AppSidebar';
 import LiveDateTime from '@/components/LiveDateTime';
@@ -18,30 +18,50 @@ const LandmarkCases = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [filteredCases, setFilteredCases] = useState(LANDMARK_CASES);
+  const [loading, setLoading] = useState(true);
   
   // Get unique categories for the tab filters
   const uniqueCategories = [...new Set(LANDMARK_CASES.map(c => c.category))];
   
+  // Initialize with all cases
+  useEffect(() => {
+    setFilteredCases(LANDMARK_CASES);
+    setLoading(false);
+  }, []);
+
   const filterCases = (query: string, category: string) => {
-    let filtered = [...LANDMARK_CASES];
+    setLoading(true);
     
-    // Filter by category if not 'all'
-    if (category !== 'all') {
-      filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase());
+    try {
+      let filtered = [...LANDMARK_CASES];
+      
+      // Filter by category if not 'all'
+      if (category !== 'all') {
+        filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase());
+      }
+      
+      // Filter by search query if provided
+      if (query) {
+        const lowerQuery = query.toLowerCase();
+        filtered = filtered.filter(c => 
+          c.title.toLowerCase().includes(lowerQuery) ||
+          c.summary.toLowerCase().includes(lowerQuery) ||
+          c.court.toLowerCase().includes(lowerQuery) ||
+          c.category.toLowerCase().includes(lowerQuery)
+        );
+      }
+      
+      setFilteredCases(filtered);
+    } catch (error) {
+      console.error('Error filtering cases:', error);
+      toast({
+        title: "Error",
+        description: "Failed to filter cases. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    // Filter by search query if provided
-    if (query) {
-      const lowerQuery = query.toLowerCase();
-      filtered = filtered.filter(c => 
-        c.title.toLowerCase().includes(lowerQuery) ||
-        c.summary.toLowerCase().includes(lowerQuery) ||
-        c.court.toLowerCase().includes(lowerQuery) ||
-        c.category.toLowerCase().includes(lowerQuery)
-      );
-    }
-    
-    setFilteredCases(filtered);
   };
 
   // Handle category change
@@ -109,7 +129,7 @@ const LandmarkCases = () => {
             </div>
             
             <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="mb-8">
-              <TabsList className="mb-4">
+              <TabsList className="mb-4 flex flex-wrap">
                 <TabsTrigger value="all">All Categories</TabsTrigger>
                 {uniqueCategories.map(category => (
                   <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
@@ -117,7 +137,11 @@ const LandmarkCases = () => {
               </TabsList>
               
               <TabsContent value={activeCategory} className="mt-2">
-                {filteredCases.length > 0 ? (
+                {loading ? (
+                  <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredCases.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {filteredCases.map((caseData) => (
                       <Card key={caseData.id} className="overflow-hidden">
@@ -137,7 +161,7 @@ const LandmarkCases = () => {
                             <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
                           </div>
                           
-                          <p className="text-sm">{caseData.summary}</p>
+                          <p className="text-sm line-clamp-3">{caseData.summary}</p>
                           
                           <div className="mt-4 flex justify-end">
                             <Button size="sm" asChild>

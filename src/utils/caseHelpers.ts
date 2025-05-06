@@ -24,7 +24,7 @@ export const searchCases = async (query: string): Promise<CaseSearchResult[]> =>
       .from('regular_cases')
       .select('id, title, citation, court, date, category, summary')
       .ilike('title', `%${query}%`)
-      .limit(50);
+      .limit(100);
     
     if (error) throw error;
     
@@ -66,14 +66,14 @@ export const fetchCaseCategories = async (): Promise<CaseCategory[]> => {
   }
 };
 
-// Add new function to fetch all cases
+// Add new function to fetch all cases - increased to 100 cases
 export const fetchAllCases = async (): Promise<CaseSearchResult[]> => {
   try {
     const { data, error } = await supabase
       .from('regular_cases')
       .select('id, title, citation, court, date, category, summary')
       .order('date', { ascending: false })
-      .limit(50);
+      .limit(100);
     
     if (error) throw error;
     
@@ -91,7 +91,7 @@ export const fetchCasesByCategory = async (category: string): Promise<CaseSearch
       .select('id, title, citation, court, date, category, summary')
       .eq('category', category)
       .order('date', { ascending: false })
-      .limit(50);
+      .limit(100);
     
     if (error) throw error;
     
