@@ -1,18 +1,10 @@
-# Welcome to your Lovable project
+# Welcome to your CourtWiseAI
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/82646d3c-ce22-438a-b34c-69a48431ddaa
 
 ## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/82646d3c-ce22-438a-b34c-69a48431ddaa) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
