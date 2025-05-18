@@ -1,20 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MenuIcon, Search, Loader2, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import AppSidebar from '@/components/AppSidebar';
-import LiveDateTime from '@/components/LiveDateTime';
-import { Input } from '@/components/ui/input';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
+import AppSidebar from '@/components/AppSidebar';
+import LandmarkPageHeader from '@/components/landmark/LandmarkPageHeader';
+import LandmarkCaseSearch from '@/components/landmark/LandmarkCaseSearch';
+import LandmarkCaseFilter from '@/components/landmark/LandmarkCaseFilter';
+import LandmarkCaseResults from '@/components/landmark/LandmarkCaseResults';
 
 const LandmarkCases = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [filteredCases, setFilteredCases] = useState(LANDMARK_CASES);
@@ -83,40 +79,20 @@ const LandmarkCases = () => {
     });
   };
 
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setActiveCategory('all');
+    setFilteredCases(LANDMARK_CASES);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         
         <main className="flex-1 bg-background">
-          <header className="sticky top-0 z-30 bg-white shadow-sm">
-            <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-              <div className="flex items-center">
-                <div className="md:hidden">
-                  <SidebarTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MenuIcon className="h-5 w-5" />
-                    </Button>
-                  </SidebarTrigger>
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  className="mr-2"
-                  onClick={() => navigate(-1)}
-                >
-                  <ArrowLeft className="h-5 w-5 mr-1" />
-                  <span className="hidden sm:inline">Back</span>
-                </Button>
-                
-                <h1 className="text-xl md:text-2xl font-serif font-bold">Landmark Cases</h1>
-              </div>
-              
-              <div className="hidden md:block">
-                <LiveDateTime />
-              </div>
-            </div>
-          </header>
+          <LandmarkPageHeader />
           
           <div className="container mx-auto px-4 py-6">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
@@ -126,95 +102,27 @@ const LandmarkCases = () => {
               </div>
               
               <div className="w-full md:w-64">
-                <form onSubmit={handleSearch} className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="search" 
-                    placeholder="Search landmark cases..." 
-                    className="pl-9 bg-white"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </form>
+                <LandmarkCaseSearch 
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onSearchSubmit={handleSearch}
+                />
               </div>
             </div>
             
-            {/* Category filter buttons */}
-            <div className="mb-6 space-y-2">
-              <h3 className="text-sm font-medium">Filter by category:</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant={activeCategory === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleCategoryChange('all')}
-                >
-                  All Categories
-                </Button>
-                {uniqueCategories.map(category => (
-                  <Button 
-                    key={category} 
-                    variant={activeCategory === category ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleCategoryChange(category)}
-                  >
-                    {category}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            <LandmarkCaseFilter 
+              activeCategory={activeCategory}
+              uniqueCategories={uniqueCategories}
+              onCategoryChange={handleCategoryChange}
+            />
             
-            {loading ? (
-              <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : filteredCases.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredCases.map((caseData) => (
-                  <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="h-1.5 bg-primary"></div>
-                    <div className="p-4">
-                      <div className="mb-3">
-                        <h3 className="font-serif font-semibold text-lg">{caseData.title}</h3>
-                        <p className="text-xs text-muted-foreground">{caseData.citation}</p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="text-xs">
-                          <span className="text-muted-foreground">{caseData.court}</span>
-                          <span className="mx-1.5">•</span>
-                          <span className="text-muted-foreground">{caseData.date}</span>
-                        </div>
-                        <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
-                      </div>
-                      
-                      <p className="text-sm line-clamp-3">{caseData.summary}</p>
-                      
-                      <div className="mt-4 flex justify-end">
-                        <Button size="sm" asChild>
-                          <Link to={`/case/${caseData.id}`}>View Full Case</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <h3 className="text-lg font-medium mb-2">No cases found</h3>
-                <p className="text-muted-foreground mb-6">
-                  {searchQuery 
-                    ? `No results found for "${searchQuery}" in ${activeCategory === 'all' ? 'any category' : `the ${activeCategory} category`}` 
-                    : `No cases found in the ${activeCategory} category`}
-                </p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery('');
-                  setActiveCategory('all');
-                  setFilteredCases(LANDMARK_CASES);
-                }}>
-                  View All Cases
-                </Button>
-              </div>
-            )}
+            <LandmarkCaseResults 
+              loading={loading}
+              filteredCases={filteredCases}
+              searchQuery={searchQuery}
+              activeCategory={activeCategory}
+              onResetFilters={handleResetFilters}
+            />
           </div>
         </main>
       </div>

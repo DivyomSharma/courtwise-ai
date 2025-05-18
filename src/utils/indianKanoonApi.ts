@@ -78,11 +78,17 @@ export const searchIndianKanoon = async (
     });
     
     if (error) {
-      throw new Error(`Error invoking Indian Kanoon API: ${error.message}`);
+      console.error('Error invoking Indian Kanoon API:', error);
+      toast({
+        title: 'API Error',
+        description: `Failed to search Indian Kanoon: ${error.message}`,
+        variant: 'destructive'
+      });
+      return null;
     }
     
     return data as IKSearchResult;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error searching Indian Kanoon:', error);
     toast({
       title: 'API Error',
@@ -108,11 +114,17 @@ export const getIndianKanoonDocument = async (docId: string): Promise<IKDocument
     });
     
     if (error) {
-      throw new Error(`Error invoking Indian Kanoon API: ${error.message}`);
+      console.error('Error invoking Indian Kanoon API:', error);
+      toast({
+        title: 'API Error',
+        description: `Failed to fetch document details: ${error.message}`,
+        variant: 'destructive'
+      });
+      return null;
     }
     
     return data as IKDocumentDetail;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching Indian Kanoon document:', error);
     toast({
       title: 'API Error',
@@ -142,11 +154,17 @@ export const getIndianKanoonDocumentFragments = async (
     });
     
     if (error) {
-      throw new Error(`Error invoking Indian Kanoon API: ${error.message}`);
+      console.error('Error invoking Indian Kanoon API:', error);
+      toast({
+        title: 'API Error',
+        description: `Failed to fetch document fragments: ${error.message}`,
+        variant: 'destructive'
+      });
+      return null;
     }
     
     return data as IKDocumentFragment;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching Indian Kanoon document fragments:', error);
     toast({
       title: 'API Error',
@@ -162,8 +180,13 @@ export const checkIndianKanoonApiKey = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase.functions.invoke('check-indian-kanoon-api', {});
     
-    if (error || !data?.configured) {
-      console.error('Indian Kanoon API key not configured');
+    if (error) {
+      console.error('Error checking Indian Kanoon API configuration:', error);
+      return false;
+    }
+    
+    if (!data?.configured) {
+      console.log('Indian Kanoon API key not configured');
       return false;
     }
     

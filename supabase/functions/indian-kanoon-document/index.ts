@@ -3,7 +3,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const INDIAN_KANOON_API_URL = 'https://api.indiankanoon.org/doc'
-const INDIAN_KANOON_API_TOKEN = Deno.env.get('INDIAN_KANOON_API_TOKEN') // Get from Supabase secrets
+const INDIAN_KANOON_API_TOKEN = Deno.env.get('INDIAN_KANOON_API_TOKEN')
 
 serve(async (req) => {
   // Handle CORS
@@ -22,7 +22,7 @@ serve(async (req) => {
     console.log(`Requesting Indian Kanoon document API: ${apiUrl}`)
 
     const response = await fetch(apiUrl, {
-      method: 'GET',
+      method: 'POST', // Changed from GET to POST based on API docs
       headers: {
         'Accept': 'application/json',
         'Authorization': `Token ${INDIAN_KANOON_API_TOKEN}`,

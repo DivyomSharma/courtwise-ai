@@ -41,7 +41,7 @@ const LandmarkCasesSection = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <>
+          <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayCases.map((caseData) => (
                 <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -78,7 +78,7 @@ const LandmarkCasesSection = () => {
                 <Link to="/landmark-cases">View All {LANDMARK_CASES.length} Landmark Cases</Link>
               </Button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

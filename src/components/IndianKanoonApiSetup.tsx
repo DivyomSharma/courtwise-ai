@@ -13,19 +13,22 @@ interface IndianKanoonApiSetupProps {
 const IndianKanoonApiSetup: React.FC<IndianKanoonApiSetupProps> = ({ onSetupComplete }) => {
   const [loading, setLoading] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const checkApiConfig = async () => {
       try {
         setLoading(true);
+        setError(null);
         const configured = await checkIndianKanoonApiKey();
         setIsConfigured(configured);
         
         if (configured && onSetupComplete) {
           onSetupComplete();
         }
-      } catch (error) {
-        console.error('Error checking API configuration:', error);
+      } catch (err) {
+        console.error('Error checking API configuration:', err);
+        setError('Failed to check API configuration. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -48,6 +51,14 @@ const IndianKanoonApiSetup: React.FC<IndianKanoonApiSetupProps> = ({ onSetupComp
           <div className="flex justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
+        ) : error ? (
+          <Alert className="bg-red-50 border-red-200">
+            <AlertCircle className="h-4 w-4 text-red-700" />
+            <AlertTitle className="text-red-700">Error Checking API</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
         ) : isConfigured ? (
           <Alert className="bg-green-50 border-green-200">
             <Check className="h-4 w-4 text-green-700" />
@@ -91,7 +102,13 @@ const IndianKanoonApiSetup: React.FC<IndianKanoonApiSetupProps> = ({ onSetupComp
         </Button>
         
         {!loading && !isConfigured && (
-          <Button>Configure API Key</Button>
+          <Button 
+            onClick={() => {
+              window.open('https://supabase.com/dashboard/project/adgqwzazspqhpdmtwhkg/settings/functions', '_blank');
+            }}
+          >
+            Configure API Key
+          </Button>
         )}
       </CardFooter>
     </Card>

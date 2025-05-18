@@ -2,8 +2,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
-const INDIAN_KANOON_API_URL = 'https://api.indiankanoon.org/search'
-const INDIAN_KANOON_API_TOKEN = Deno.env.get('INDIAN_KANOON_API_TOKEN') 
+const INDIAN_KANOON_API_URL = 'https://api.indiankanoon.org/docfragment'
+const INDIAN_KANOON_API_TOKEN = Deno.env.get('INDIAN_KANOON_API_TOKEN')
 
 serve(async (req) => {
   // Handle CORS
@@ -16,10 +16,10 @@ serve(async (req) => {
       throw new Error('Indian Kanoon API token not configured')
     }
 
-    const { params } = await req.json()
+    const { docId, formInput } = await req.json()
     
-    const apiUrl = `${INDIAN_KANOON_API_URL}/?${params}`
-    console.log(`Requesting Indian Kanoon API: ${apiUrl}`)
+    const apiUrl = `${INDIAN_KANOON_API_URL}/${docId}/?formInput=${encodeURIComponent(formInput)}`
+    console.log(`Requesting Indian Kanoon document fragment API: ${apiUrl}`)
 
     const response = await fetch(apiUrl, {
       method: 'POST', // Changed from GET to POST based on API docs
@@ -43,11 +43,11 @@ serve(async (req) => {
       }
     })
   } catch (error) {
-    console.error('Error in Indian Kanoon search function:', error)
+    console.error('Error in Indian Kanoon document fragment function:', error)
     
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Failed to fetch data from Indian Kanoon API' 
+        error: error.message || 'Failed to fetch document fragments from Indian Kanoon API' 
       }),
       { 
         status: 500,
