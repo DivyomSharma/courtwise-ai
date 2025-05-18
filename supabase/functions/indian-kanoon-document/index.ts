@@ -22,7 +22,7 @@ serve(async (req) => {
     console.log(`Requesting Indian Kanoon document API: ${apiUrl}`)
 
     const response = await fetch(apiUrl, {
-      method: 'POST', // Changed from GET to POST based on API docs
+      method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Authorization': `Token ${INDIAN_KANOON_API_TOKEN}`,

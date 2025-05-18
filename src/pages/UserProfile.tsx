@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { MenuIcon, Loader2 } from 'lucide-react';
@@ -28,7 +28,7 @@ const UserProfile = () => {
       });
       navigate('/auth');
     }
-  }, [isLoggedIn, navigate, loading]);
+  }, [isLoggedIn, navigate, loading, toast]);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -53,12 +53,10 @@ const UserProfile = () => {
           <header className="sticky top-0 z-30 bg-white shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
-                <div className="md:hidden">
-                  <SidebarTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MenuIcon className="h-5 w-5" />
-                    </Button>
-                  </SidebarTrigger>
+                <div className="md:hidden mr-2">
+                  <Button variant="ghost" size="icon">
+                    <MenuIcon className="h-5 w-5" />
+                  </Button>
                 </div>
                 
                 <h1 className="text-xl md:text-2xl font-serif font-bold">Your Profile</h1>

@@ -14,8 +14,8 @@ const LandmarkPageHeader = () => {
     <header className="sticky top-0 z-30 bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
-          <div className="md:hidden">
-            <SidebarTrigger asChild>
+          <div className="md:hidden mr-2">
+            <SidebarTrigger>
               <Button variant="ghost" size="icon">
                 <MenuIcon className="h-5 w-5" />
               </Button>
@@ -24,8 +24,8 @@ const LandmarkPageHeader = () => {
           
           <Button 
             variant="ghost" 
-            className="mr-2"
             onClick={() => navigate(-1)}
+            className="mr-2"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
             <span className="hidden sm:inline">Back</span>

@@ -1,198 +1,118 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
-// Types for Indian Kanoon API responses
-export interface IKSearchResult {
-  docs: IKDocument[];
-  categories: IKCategory[];
-  found: string;
-  encodedformInput: string;
-  formInput: string;
+interface SearchResults {
+  found: number;
+  docs: any[];
+  categories: any[];
 }
 
-export interface IKDocument {
-  tid: string; // Document ID
+interface DocumentResult {
+  doc: string;
   title: string;
-  headline: string;
-  docsource: string;
-  url?: string;
-  docsize?: number;
+  [key: string]: any;
 }
 
-export interface IKCategory {
-  0: string; // Category name
-  1: { value: string; formInput: string }[]; // Subcategories
-}
-
-export interface IKDocumentDetail {
-  doc: string; // HTML content
-  tid: string;
+interface DocumentFragmentResult {
   title: string;
-}
-
-export interface IKDocumentFragment {
-  tid: string;
-  formInput: string;
-  title: string;
-  headline: string;
   fragments: string[];
+  [key: string]: any;
 }
 
-/**
- * Search for cases using Indian Kanoon API
- * Note: This requires a valid API key stored in Supabase secrets
- */
-export const searchIndianKanoon = async (
-  query: string,
-  options: {
-    pagenum?: number;
-    doctypes?: string;
-    fromdate?: string;
-    todate?: string;
-    title?: string;
-    cite?: string;
-    author?: string;
-    bench?: string;
-    maxcites?: number;
-  } = {}
-): Promise<IKSearchResult | null> => {
-  try {
-    console.log('Searching Indian Kanoon with query:', query);
-    
-    // Build query parameters
-    const params = new URLSearchParams({
-      formInput: query,
-      pagenum: (options.pagenum || 0).toString(),
-      ...Object.entries(options).reduce((acc, [key, value]) => {
-        if (value !== undefined) acc[key] = value.toString();
-        return acc;
-      }, {} as Record<string, string>)
-    });
-    
-    // Use Edge Function to proxy the request to Indian Kanoon API
-    const { data, error } = await supabase.functions.invoke('indian-kanoon-search', {
-      body: {
-        params: params.toString()
-      }
-    });
-    
-    if (error) {
-      console.error('Error invoking Indian Kanoon API:', error);
-      toast({
-        title: 'API Error',
-        description: `Failed to search Indian Kanoon: ${error.message}`,
-        variant: 'destructive'
-      });
-      return null;
-    }
-    
-    return data as IKSearchResult;
-  } catch (error: any) {
-    console.error('Error searching Indian Kanoon:', error);
-    toast({
-      title: 'API Error',
-      description: 'Failed to search Indian Kanoon. Please try again later.',
-      variant: 'destructive'
-    });
-    return null;
-  }
-};
-
-/**
- * Fetch document details from Indian Kanoon API
- */
-export const getIndianKanoonDocument = async (docId: string): Promise<IKDocumentDetail | null> => {
-  try {
-    console.log('Fetching document from Indian Kanoon:', docId);
-    
-    // Use Edge Function to proxy the request to Indian Kanoon API
-    const { data, error } = await supabase.functions.invoke('indian-kanoon-document', {
-      body: {
-        docId
-      }
-    });
-    
-    if (error) {
-      console.error('Error invoking Indian Kanoon API:', error);
-      toast({
-        title: 'API Error',
-        description: `Failed to fetch document details: ${error.message}`,
-        variant: 'destructive'
-      });
-      return null;
-    }
-    
-    return data as IKDocumentDetail;
-  } catch (error: any) {
-    console.error('Error fetching Indian Kanoon document:', error);
-    toast({
-      title: 'API Error',
-      description: 'Failed to fetch document details. Please try again later.',
-      variant: 'destructive'
-    });
-    return null;
-  }
-};
-
-/**
- * Fetch document fragments from Indian Kanoon API
- */
-export const getIndianKanoonDocumentFragments = async (
-  docId: string, 
-  query: string
-): Promise<IKDocumentFragment | null> => {
-  try {
-    console.log('Fetching document fragments from Indian Kanoon:', docId, query);
-    
-    // Use Edge Function to proxy the request to Indian Kanoon API
-    const { data, error } = await supabase.functions.invoke('indian-kanoon-document-fragment', {
-      body: {
-        docId,
-        formInput: query
-      }
-    });
-    
-    if (error) {
-      console.error('Error invoking Indian Kanoon API:', error);
-      toast({
-        title: 'API Error',
-        description: `Failed to fetch document fragments: ${error.message}`,
-        variant: 'destructive'
-      });
-      return null;
-    }
-    
-    return data as IKDocumentFragment;
-  } catch (error: any) {
-    console.error('Error fetching Indian Kanoon document fragments:', error);
-    toast({
-      title: 'API Error',
-      description: 'Failed to fetch document fragments. Please try again later.',
-      variant: 'destructive'
-    });
-    return null;
-  }
-};
-
-// Check if Indian Kanoon API key is configured
+// Check if the API key is configured in Supabase
 export const checkIndianKanoonApiKey = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.functions.invoke('check-indian-kanoon-api', {});
+    const { data, error } = await supabase.functions.invoke('check-indian-kanoon-api', {
+      method: 'POST',
+    });
     
     if (error) {
-      console.error('Error checking Indian Kanoon API configuration:', error);
+      console.error('Error checking API key:', error);
       return false;
     }
     
-    if (!data?.configured) {
-      console.log('Indian Kanoon API key not configured');
-      return false;
-    }
-    
-    return true;
+    return data?.configured || false;
   } catch (error) {
-    console.error('Error checking Indian Kanoon API configuration:', error);
+    console.error('Error checking API key:', error);
     return false;
+  }
+};
+
+// Search Indian Kanoon API
+export const searchIndianKanoon = async (query: string, page: number = 0): Promise<SearchResults | null> => {
+  try {
+    if (!query) {
+      return null;
+    }
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('formInput', query);
+    queryParams.append('pagenum', page.toString());
+
+    const params = queryParams.toString();
+    
+    const { data, error } = await supabase.functions.invoke('indian-kanoon-search', {
+      method: 'POST',
+      body: { params },
+    });
+    
+    if (error) {
+      console.error('Error searching Indian Kanoon:', error);
+      throw error;
+    }
+    
+    return data as SearchResults;
+    
+  } catch (error) {
+    console.error('Error searching Indian Kanoon:', error);
+    throw error;
+  }
+};
+
+// Get document from Indian Kanoon API
+export const getIndianKanoonDocument = async (docId: string): Promise<DocumentResult | null> => {
+  try {
+    if (!docId) {
+      return null;
+    }
+    
+    const { data, error } = await supabase.functions.invoke('indian-kanoon-document', {
+      method: 'POST',
+      body: { docId },
+    });
+    
+    if (error) {
+      console.error('Error fetching Indian Kanoon document:', error);
+      throw error;
+    }
+    
+    return data as DocumentResult;
+  } catch (error) {
+    console.error('Error fetching Indian Kanoon document:', error);
+    throw error;
+  }
+};
+
+// Get document fragments from Indian Kanoon API
+export const getIndianKanoonDocumentFragments = async (docId: string, query: string): Promise<DocumentFragmentResult | null> => {
+  try {
+    if (!docId || !query) {
+      return null;
+    }
+    
+    const { data, error } = await supabase.functions.invoke('indian-kanoon-document-fragment', {
+      method: 'POST',
+      body: { docId, formInput: query },
+    });
+    
+    if (error) {
+      console.error('Error fetching Indian Kanoon document fragments:', error);
+      throw error;
+    }
+    
+    return data as DocumentFragmentResult;
+  } catch (error) {
+    console.error('Error fetching Indian Kanoon document fragments:', error);
+    throw error;
   }
 };
