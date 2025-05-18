@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MenuIcon, Search, Loader2, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,49 +11,33 @@ import LiveDateTime from '@/components/LiveDateTime';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
-import { getLandmarkCasesForHome, CaseSearchResult } from '@/utils/caseHelpers';
 
 const LandmarkCases = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [filteredCases, setFilteredCases] = useState<CaseSearchResult[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Get landmark cases - either from predefined data or generated
-  const landmarkCases = useMemo(() => {
-    // If we have less than 50 predefined cases, supplement with generated ones
-    return LANDMARK_CASES.length >= 50 
-      ? LANDMARK_CASES 
-      : [...LANDMARK_CASES, ...getLandmarkCasesForHome(50 - LANDMARK_CASES.length)];
-  }, []);
+  const [filteredCases, setFilteredCases] = useState(LANDMARK_CASES);
+  const [loading, setLoading] = useState(false);
   
   // Get unique categories for the tab filters
-  const uniqueCategories = useMemo(() => {
-    return [...new Set(landmarkCases.map(c => c.category))];
-  }, [landmarkCases]);
+  const uniqueCategories = [...new Set(LANDMARK_CASES.map(c => c.category))];
   
-  // Initialize with all cases
-  useEffect(() => {
-    setFilteredCases(landmarkCases);
-    setLoading(false);
-  }, [landmarkCases]);
-
-  const filterCases = (query: string, category: string) => {
+  // Filter cases by search and category
+  const handleFilterCases = () => {
     setLoading(true);
     
     try {
-      let filtered = [...landmarkCases];
+      let filtered = [...LANDMARK_CASES];
       
       // Filter by category if not 'all'
-      if (category !== 'all') {
-        filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase());
+      if (activeCategory !== 'all') {
+        filtered = filtered.filter(c => c.category.toLowerCase() === activeCategory.toLowerCase());
       }
       
       // Filter by search query if provided
-      if (query) {
-        const lowerQuery = query.toLowerCase();
+      if (searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase();
         filtered = filtered.filter(c => 
           c.title.toLowerCase().includes(lowerQuery) ||
           c.summary.toLowerCase().includes(lowerQuery) ||
@@ -79,13 +62,20 @@ const LandmarkCases = () => {
   // Handle category change
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    filterCases(searchQuery, category);
+    
+    // Reset filtered cases when changing categories
+    let filtered = [...LANDMARK_CASES];
+    if (category !== 'all') {
+      filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase());
+    }
+    
+    setFilteredCases(filtered);
   };
 
   // Handle search submit
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    filterCases(searchQuery, activeCategory);
+    handleFilterCases();
     
     toast({
       title: "Search Results",
@@ -149,71 +139,82 @@ const LandmarkCases = () => {
               </div>
             </div>
             
-            <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="mb-8">
-              <div className="overflow-x-auto">
-                <TabsList className="mb-4 inline-flex w-max">
-                  <TabsTrigger value="all">All Categories</TabsTrigger>
-                  {uniqueCategories.map(category => (
-                    <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-                  ))}
-                </TabsList>
+            {/* Category filter buttons */}
+            <div className="mb-6 space-y-2">
+              <h3 className="text-sm font-medium">Filter by category:</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={activeCategory === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleCategoryChange('all')}
+                >
+                  All Categories
+                </Button>
+                {uniqueCategories.map(category => (
+                  <Button 
+                    key={category} 
+                    variant={activeCategory === category ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleCategoryChange(category)}
+                  >
+                    {category}
+                  </Button>
+                ))}
               </div>
-              
-              <TabsContent value={activeCategory} className="mt-2">
-                {loading ? (
-                  <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : filteredCases.length > 0 ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {filteredCases.map((caseData) => (
-                      <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="h-1.5 bg-primary"></div>
-                        <CardContent className="p-4">
-                          <div className="mb-3">
-                            <h3 className="font-serif font-semibold text-lg">{caseData.title}</h3>
-                            <p className="text-xs text-muted-foreground">{caseData.citation}</p>
-                          </div>
-                          
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-xs">
-                              <span className="text-muted-foreground">{caseData.court}</span>
-                              <span className="mx-1.5">•</span>
-                              <span className="text-muted-foreground">{caseData.date}</span>
-                            </div>
-                            <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
-                          </div>
-                          
-                          <p className="text-sm line-clamp-3">{caseData.summary}</p>
-                          
-                          <div className="mt-4 flex justify-end">
-                            <Button size="sm" asChild>
-                              <Link to={`/case/${caseData.id}`}>View Full Case</Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <h3 className="text-lg font-medium mb-2">No cases found</h3>
-                    <p className="text-muted-foreground mb-6">
-                      {searchQuery 
-                        ? `No results found for "${searchQuery}" in ${activeCategory === 'all' ? 'any category' : `the ${activeCategory} category`}` 
-                        : `No cases found in the ${activeCategory} category`}
-                    </p>
-                    <Button variant="outline" onClick={() => {
-                      setSearchQuery('');
-                      setActiveCategory('all');
-                      setFilteredCases(landmarkCases);
-                    }}>
-                      View All Cases
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            </div>
+            
+            {loading ? (
+              <div className="flex justify-center items-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredCases.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {filteredCases.map((caseData) => (
+                  <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="h-1.5 bg-primary"></div>
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <h3 className="font-serif font-semibold text-lg">{caseData.title}</h3>
+                        <p className="text-xs text-muted-foreground">{caseData.citation}</p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-xs">
+                          <span className="text-muted-foreground">{caseData.court}</span>
+                          <span className="mx-1.5">•</span>
+                          <span className="text-muted-foreground">{caseData.date}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">{caseData.category}</Badge>
+                      </div>
+                      
+                      <p className="text-sm line-clamp-3">{caseData.summary}</p>
+                      
+                      <div className="mt-4 flex justify-end">
+                        <Button size="sm" asChild>
+                          <Link to={`/case/${caseData.id}`}>View Full Case</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <h3 className="text-lg font-medium mb-2">No cases found</h3>
+                <p className="text-muted-foreground mb-6">
+                  {searchQuery 
+                    ? `No results found for "${searchQuery}" in ${activeCategory === 'all' ? 'any category' : `the ${activeCategory} category`}` 
+                    : `No cases found in the ${activeCategory} category`}
+                </p>
+                <Button variant="outline" onClick={() => {
+                  setSearchQuery('');
+                  setActiveCategory('all');
+                  setFilteredCases(LANDMARK_CASES);
+                }}>
+                  View All Cases
+                </Button>
+              </div>
+            )}
           </div>
         </main>
       </div>

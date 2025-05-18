@@ -1,25 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
 import { Loader2 } from 'lucide-react';
-import { getLandmarkCasesForHome } from '@/utils/caseHelpers';
+import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
 
 const LandmarkCasesSection = () => {
   const [loading, setLoading] = useState(false);
   
-  // Get landmark cases - either from predefined data or generated
-  // Display first 50 cases on home page
-  const displayCases = useMemo(() => {
-    // If we have less than 50 predefined cases, supplement with generated ones
-    return LANDMARK_CASES.length >= 50 
-      ? LANDMARK_CASES.slice(0, 50) 
-      : [...LANDMARK_CASES, ...getLandmarkCasesForHome(50 - LANDMARK_CASES.length)];
-  }, []);
-
+  // Use first 6 landmark cases for display on homepage
+  const displayCases = LANDMARK_CASES.slice(0, 6);
+  
   return (
     <div id="landmark-cases" className="py-10">
       <div className="container mx-auto px-4">
@@ -40,7 +33,7 @@ const LandmarkCasesSection = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayCases.slice(0, 6).map((caseData) => (
+              {displayCases.map((caseData) => (
                 <Card key={caseData.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="h-1.5 bg-primary"></div>
                   <div className="p-4">
@@ -70,13 +63,11 @@ const LandmarkCasesSection = () => {
               ))}
             </div>
             
-            {displayCases.length > 6 && (
-              <div className="mt-8 text-center">
-                <Button variant="outline" asChild>
-                  <Link to="/landmark-cases">View All {displayCases.length} Landmark Cases</Link>
-                </Button>
-              </div>
-            )}
+            <div className="mt-8 text-center">
+              <Button variant="outline" asChild>
+                <Link to="/landmark-cases">View All {LANDMARK_CASES.length} Landmark Cases</Link>
+              </Button>
+            </div>
           </>
         )}
       </div>

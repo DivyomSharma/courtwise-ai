@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { LANDMARK_CASES } from './landmarkCasesData';
 
 export interface CaseSearchResult {
   id: string;
@@ -40,14 +41,34 @@ export const searchCases = async (query: string): Promise<CaseSearchResult[]> =>
     
     if (error) {
       console.error('Search error:', error);
-      return [];
+      // Fall back to searching in our landmark cases
+      const landmarkResults = LANDMARK_CASES.filter(caseItem => 
+        caseItem.title.toLowerCase().includes(query.toLowerCase()) ||
+        caseItem.summary.toLowerCase().includes(query.toLowerCase())
+      );
+      return landmarkResults;
     }
     
-    console.log('Found cases using direct query:', data?.length);
-    return data || [];
+    if (data && data.length > 0) {
+      console.log('Found cases using direct query:', data.length);
+      return data;
+    }
+    
+    // If no results from database, search in our landmark cases
+    const landmarkResults = LANDMARK_CASES.filter(caseItem => 
+      caseItem.title.toLowerCase().includes(query.toLowerCase()) ||
+      caseItem.summary.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    return landmarkResults;
   } catch (error) {
     console.error('Search error:', error);
-    return [];
+    // Fall back to searching in our landmark cases
+    const landmarkResults = LANDMARK_CASES.filter(caseItem => 
+      caseItem.title.toLowerCase().includes(query.toLowerCase()) ||
+      caseItem.summary.toLowerCase().includes(query.toLowerCase())
+    );
+    return landmarkResults;
   }
 };
 
@@ -75,18 +96,32 @@ export const fetchCaseCategories = async (): Promise<CaseCategory[]> => {
     
     if (error) {
       console.error('Error fetching case categories:', error);
-      return [];
+      // Generate categories from landmark cases
+      const categories = [...new Set(LANDMARK_CASES.map(c => c.category))];
+      return categories.map((name, index) => ({
+        id: `cat-${index}`,
+        name,
+        description: `Cases related to ${name}`,
+        count: LANDMARK_CASES.filter(c => c.category === name).length
+      }));
     }
     
     console.log('Fetched categories:', data?.length);
     return data || [];
   } catch (error) {
     console.error('Error fetching case categories:', error);
-    return [];
+    // Generate categories from landmark cases
+    const categories = [...new Set(LANDMARK_CASES.map(c => c.category))];
+    return categories.map((name, index) => ({
+      id: `cat-${index}`,
+      name,
+      description: `Cases related to ${name}`,
+      count: LANDMARK_CASES.filter(c => c.category === name).length
+    }));
   }
 };
 
-// Function to fetch all cases - increased to 100 cases
+// Function to fetch all cases - using landmark cases from our data
 export const fetchAllCases = async (): Promise<CaseSearchResult[]> => {
   try {
     console.log('Fetching all cases');
@@ -100,21 +135,21 @@ export const fetchAllCases = async (): Promise<CaseSearchResult[]> => {
     
     if (error) {
       console.error('Error fetching all cases:', error);
-      return generateSampleCases(100); // Fallback to sample cases
+      return LANDMARK_CASES; // Return our real landmark cases instead
     }
     
     console.log('Fetched cases from DB:', data?.length);
     
-    // If no data in database, return sample cases
+    // If no data in database, return landmark cases
     if (!data || data.length === 0) {
-      console.log('No data in database, generating sample cases');
-      return generateSampleCases(100);
+      console.log('No data in database, using landmark cases');
+      return LANDMARK_CASES;
     }
     
     return data;
   } catch (error) {
     console.error('Error fetching all cases:', error);
-    return generateSampleCases(100); // Fallback to sample cases
+    return LANDMARK_CASES; // Return our real landmark cases instead
   }
 };
 
@@ -131,73 +166,27 @@ export const fetchCasesByCategory = async (category: string): Promise<CaseSearch
     
     if (error) {
       console.error(`Error fetching cases by category ${category}:`, error);
-      return generateSampleCases(50, category); // Fallback to sample cases with the category
+      // Filter landmark cases by category
+      return LANDMARK_CASES.filter(c => c.category === category);
     }
     
     console.log('Fetched cases by category:', data?.length);
     
-    // If no data in database, return sample cases filtered by category
+    // If no data in database, filter landmark cases by category
     if (!data || data.length === 0) {
-      console.log('No data for category in database, generating sample cases');
-      return generateSampleCases(50, category);
+      console.log('No data for category in database, filtering landmark cases');
+      return LANDMARK_CASES.filter(c => c.category === category);
     }
     
     return data;
   } catch (error) {
     console.error(`Error fetching cases by category ${category}:`, error);
-    return generateSampleCases(50, category); // Fallback to sample cases with the category
+    // Filter landmark cases by category
+    return LANDMARK_CASES.filter(c => c.category === category);
   }
 };
 
-// Function to generate sample cases when database has no data
-export const generateSampleCases = (count: number = 100, filterCategory?: string): CaseSearchResult[] => {
-  console.log('Generating sample cases:', count, filterCategory ? `for category ${filterCategory}` : '');
-  
-  const categories = [
-    'Constitutional Law', 'Criminal Law', 'Civil Law', 'Family Law',
-    'Corporate Law', 'Taxation', 'Intellectual Property', 'Environmental Law',
-    'Human Rights', 'Labor Law', 'Banking Law', 'Administrative Law'
-  ];
-  
-  const courts = [
-    'Supreme Court of India', 'Delhi High Court', 'Bombay High Court', 
-    'Madras High Court', 'Calcutta High Court', 'Karnataka High Court',
-    'Allahabad High Court', 'Gujarat High Court', 'Patna High Court'
-  ];
-  
-  const sampleCases: CaseSearchResult[] = [];
-  
-  for (let i = 0; i < count; i++) {
-    const category = filterCategory || categories[Math.floor(Math.random() * categories.length)];
-    const court = courts[Math.floor(Math.random() * courts.length)];
-    const year = 2000 + Math.floor(Math.random() * 23); // Years 2000-2023
-    const month = 1 + Math.floor(Math.random() * 12);
-    const day = 1 + Math.floor(Math.random() * 28);
-    const caseNumber = 100 + Math.floor(Math.random() * 9000);
-    
-    sampleCases.push({
-      id: `sample-${i}-${Date.now()}`,
-      title: `${category} Case No. ${caseNumber}/${year}`,
-      citation: `(${year}) ${court.slice(0, 3).toUpperCase()} ${caseNumber}`,
-      court: court,
-      date: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
-      category: category,
-      summary: `This sample case addresses important ${category} principles. The judgment provides significant insights into legal precedents related to ${category.toLowerCase()} matters in India.`
-    });
-  }
-  
-  return sampleCases;
-};
-
-// Function to get landmark cases for home page (sample data)
+// Remove sample case generation and replace with direct use of landmark cases
 export const getLandmarkCasesForHome = (count: number = 50): CaseSearchResult[] => {
-  const landmarkCases = generateSampleCases(count);
-  
-  // Make these cases more "landmark" by modifying some attributes
-  return landmarkCases.map((caseItem, index) => ({
-    ...caseItem,
-    id: `landmark-${index}-${Date.now()}`,
-    title: `Landmark ${caseItem.title}`,
-    summary: `LANDMARK CASE: ${caseItem.summary}`,
-  }));
+  return LANDMARK_CASES.slice(0, count);
 };

@@ -20,7 +20,7 @@ export const LANDMARK_CASES: LandmarkCase[] = [
     id: "kesavananda-bharati",
     title: "Kesavananda Bharati vs State of Kerala",
     citation: "AIR 1973 SC 1461",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "April 24, 1973",
     category: "Constitutional",
     summary: "The Supreme Court established the doctrine of the 'basic structure' of the Constitution, ruling that Parliament cannot amend the Constitution in a way that destroys its basic or essential features.",
@@ -30,220 +30,224 @@ export const LANDMARK_CASES: LandmarkCase[] = [
     key_points: [
       "Parliament's power to amend the Constitution is subject to the condition that it cannot destroy the basic structure of the Constitution.",
       "The 'basic structure' doctrine protects the fundamental features of the Constitution from being amended in a way that would alter its identity.",
-      "Parliament has the power to amend any part of the Constitution, including Fundamental Rights, but cannot emasculate its basic features.",
-      "The power of judicial review is a basic feature of the Constitution and cannot be taken away by amendment."
-    ],
-    related_cases: [
-      "Golaknath v. State of Punjab (1967)",
-      "Minerva Mills v. Union of India (1980)",
-      "Indira Nehru Gandhi v. Raj Narain (1975)"
+      "Parliament has the power to amend any part of the Constitution, including Fundamental Rights, but cannot emasculate its basic features."
     ]
   },
   {
     id: "vishaka",
     title: "Vishaka vs State of Rajasthan",
     citation: "AIR 1997 SC 3011",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "August 13, 1997",
     category: "Labor & Employment",
     summary: "This landmark judgment laid down guidelines to prevent sexual harassment of women at workplaces, which later formed the basis for the Sexual Harassment of Women at Workplace Act, 2013.",
     judges: ["J.S. Verma", "Sujata Manohar", "B.N. Kirpal"],
     petitioner: "Vishaka and others",
-    respondent: "State of Rajasthan",
-    key_points: [
-      "The court formulated guidelines for employers to prevent sexual harassment at the workplace.",
-      "The judgment recognized sexual harassment as a violation of fundamental rights under Articles 14, 15, 19 and 21 of the Constitution.",
-      "International conventions and norms can be used to interpret domestic law when there is a void in the domestic law.",
-      "The guidelines were to be treated as law until appropriate legislation was enacted by the Parliament."
-    ],
-    related_cases: [
-      "Apparel Export Promotion Council v. A.K. Chopra (1999)",
-      "Medha Kotwal Lele v. Union of India (2013)"
-    ]
+    respondent: "State of Rajasthan"
   },
   {
     id: "puttaswamy",
     title: "Justice K.S. Puttaswamy vs Union of India",
     citation: "AIR 2017 SC 4161",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "August 24, 2017",
     category: "Constitutional",
     summary: "The Supreme Court recognized the right to privacy as a fundamental right under Article 21 of the Indian Constitution, with significant implications for data protection and personal liberty.",
-    judges: ["J.S. Khehar", "J. Chelameswar", "S.A. Bobde", "R.K. Agrawal", "R.F. Nariman", "A.M. Sapre", "D.Y. Chandrachud", "S.K. Kaul", "S. Abdul Nazeer"],
-    petitioner: "Justice K.S. Puttaswamy (Retd.)",
-    respondent: "Union of India",
-    key_points: [
-      "Right to privacy is a fundamental right protected under Article 21 of the Constitution.",
-      "Privacy includes personal intimacies, personal choices, informational privacy, and privacy of communications.",
-      "Any invasion of privacy by the state must follow due process established by law and must be necessary and proportionate to a legitimate aim.",
-      "The judgment overruled previous decisions in M.P. Sharma and Kharak Singh cases that had held privacy was not a fundamental right."
-    ],
-    related_cases: [
-      "Navtej Singh Johar v. Union of India (2018)",
-      "Joseph Shine v. Union of India (2018)",
-      "Indian Young Lawyers Association v. State of Kerala (Sabarimala Temple Case) (2018)"
-    ]
+    judges: ["J.S. Khehar", "J. Chelameswar", "S.A. Bobde", "R.K. Agrawal", "R.F. Nariman", "A.M. Sapre", "D.Y. Chandrachud", "S.K. Kaul", "S. Abdul Nazeer"]
   },
   {
     id: "shreya-singhal",
     title: "Shreya Singhal vs Union of India",
     citation: "(2015) 5 SCC 1",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "March 24, 2015",
     category: "Constitutional",
     summary: "The Supreme Court struck down Section 66A of the Information Technology Act, which criminalized sending offensive messages through communication services, as unconstitutional for violating the right to freedom of speech and expression.",
-    judges: ["J. Chelameswar", "R.F. Nariman"],
-    petitioner: "Shreya Singhal",
-    respondent: "Union of India",
-    key_points: [
-      "Section 66A of the IT Act was declared unconstitutional for being vague, overbroad and creating a chilling effect on free speech.",
-      "The court distinguished between discussion, advocacy, and incitement, holding that only incitement can be prohibited.",
-      "Reasonable restrictions on free speech must have proximate connection with public order, not remote or far-fetched connections.",
-      "The judgment emphasized the importance of protecting online speech and internet freedom."
-    ],
-    related_cases: [
-      "Romesh Thappar v. State of Madras (1950)",
-      "Bennett Coleman & Co. v. Union of India (1972)",
-      "S. Rangarajan v. P. Jagjivan Ram (1989)"
-    ]
+    judges: ["J. Chelameswar", "R.F. Nariman"]
   },
   {
     id: "navtej-johar",
     title: "Navtej Singh Johar vs Union of India",
     citation: "(2018) 10 SCC 1",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "September 6, 2018",
     category: "Constitutional",
     summary: "The Supreme Court decriminalized consensual homosexual acts by declaring Section 377 of the Indian Penal Code unconstitutional as it violated the right to privacy, dignity, and equality.",
-    judges: ["Dipak Misra", "A.M. Khanwilkar", "R.F. Nariman", "D.Y. Chandrachud", "Indu Malhotra"],
-    petitioner: "Navtej Singh Johar and others",
-    respondent: "Union of India",
-    key_points: [
-      "Section 377 of the IPC was read down to exclude consensual sexual conduct between adults of the same sex in private.",
-      "The court held that sexual orientation is a natural and inherent element of identity protected under the right to privacy and dignity.",
-      "Discrimination on the basis of sexual orientation violates the right to equality under Article 14 of the Constitution.",
-      "The judgment emphasized that constitutional morality must prevail over social morality."
-    ],
-    related_cases: [
-      "Suresh Kumar Koushal v. Naz Foundation (2013)",
-      "NALSA v. Union of India (2014)",
-      "Puttaswamy v. Union of India (2017)"
-    ]
+    judges: ["Dipak Misra", "A.M. Khanwilkar", "R.F. Nariman", "D.Y. Chandrachud", "Indu Malhotra"]
   },
   {
     id: "maneka-gandhi",
     title: "Maneka Gandhi vs Union of India",
     citation: "AIR 1978 SC 597",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "January 25, 1978",
     category: "Constitutional",
     summary: "This case expanded the interpretation of Article 21 of the Constitution, holding that the right to life and personal liberty includes a bundle of rights that makes life meaningful and not merely animal existence.",
-    judges: ["M. Hameedullah Beg", "Y.V. Chandrachud", "P.N. Bhagwati", "V.R. Krishna Iyer", "N.L. Untwalia", "S. Murtaza Fazal Ali", "P.S. Kailasam"],
-    petitioner: "Maneka Gandhi",
-    respondent: "Union of India",
-    key_points: [
-      "The 'procedure established by law' in Article 21 must be fair, just and reasonable, not arbitrary or oppressive.",
-      "Article 21 should be read along with Articles 14 and 19 to ensure due process.",
-      "The right to travel abroad is part of personal liberty under Article 21.",
-      "The government must provide an opportunity to be heard before impounding a passport."
-    ],
-    related_cases: [
-      "A.K. Gopalan v. State of Madras (1950)",
-      "Kharak Singh v. State of UP (1964)",
-      "R.C. Cooper v. Union of India (1970)"
-    ]
+    judges: ["M. Hameedullah Beg", "Y.V. Chandrachud", "P.N. Bhagwati", "V.R. Krishna Iyer", "N.L. Untwalia", "S. Murtaza Fazal Ali", "P.S. Kailasam"]
   },
   {
     id: "indra-sawhney",
     title: "Indra Sawhney vs Union of India",
     citation: "AIR 1993 SC 477",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "November 16, 1992",
     category: "Constitutional",
     summary: "The Supreme Court upheld the implementation of the Mandal Commission recommendations, establishing the ceiling of 50% on reservations and excluding the 'creamy layer' from reservation benefits.",
-    judges: ["M.H. Kania", "M.N. Venkatachaliah", "S.R. Pandian", "T.K. Thommen", "A.M. Ahmadi", "Kuldip Singh", "P.B. Sawant", "R.M. Sahai", "B.P. Jeevan Reddy"],
-    petitioner: "Indra Sawhney",
-    respondent: "Union of India",
-    key_points: [
-      "The court upheld 27% reservation for Other Backward Classes (OBCs) in central government jobs.",
-      "It established the 50% ceiling on total reservations, subject to exceptional circumstances.",
-      "The 'creamy layer' within OBCs should be excluded from reservation benefits.",
-      "Reservations cannot be made in promotions and should only be at the entry level."
-    ],
-    related_cases: [
-      "M.R. Balaji v. State of Mysore (1963)",
-      "State of Kerala v. N.M. Thomas (1976)",
-      "K.C. Vasanth Kumar v. State of Karnataka (1985)"
-    ]
+    judges: ["M.H. Kania", "M.N. Venkatachaliah", "S.R. Pandian", "T.K. Thommen", "A.M. Ahmadi", "Kuldip Singh", "P.B. Sawant", "R.M. Sahai", "B.P. Jeevan Reddy"]
   },
   {
     id: "olga-tellis",
     title: "Olga Tellis vs Bombay Municipal Corporation",
     citation: "(1985) 3 SCC 545",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "July 10, 1985",
     category: "Constitutional",
     summary: "The Court held that the right to livelihood is an integral part of the right to life under Article 21, recognizing that evicting pavement dwellers without alternative accommodation violates their fundamental rights.",
-    judges: ["Y.V. Chandrachud", "V.D. Tulzapurkar", "A. Varadarajan", "O. Chinnappa Reddy", "Baharul Islam"],
-    petitioner: "Olga Tellis and others",
-    respondent: "Bombay Municipal Corporation",
-    key_points: [
-      "The right to livelihood is an important facet of the right to life under Article 21.",
-      "Pavement dwellers should be given reasonable notice and opportunity to explain before eviction.",
-      "Alternative accommodation need not necessarily be provided, but alternative sites must be considered.",
-      "Evictions without proper rehabilitation can violate fundamental rights of the urban poor."
-    ],
-    related_cases: [
-      "Francis Coralie Mullin v. Union Territory of Delhi (1981)",
-      "Chameli Singh v. State of U.P. (1996)",
-      "Ahmedabad Municipal Corporation v. Nawab Khan Gulab Khan (1997)"
-    ]
+    judges: ["Y.V. Chandrachud", "V.D. Tulzapurkar", "A. Varadarajan", "O. Chinnappa Reddy", "Baharul Islam"]
   },
   {
     id: "triple-talaq",
     title: "Shayara Bano vs Union of India",
     citation: "(2017) 9 SCC 1",
-    court: "Supreme Court",
+    court: "Supreme Court of India",
     date: "August 22, 2017",
     category: "Family",
     summary: "The Supreme Court declared the practice of triple talaq (instant divorce) in Islamic personal law unconstitutional by a 3:2 majority, protecting the rights of Muslim women in India.",
-    judges: ["J.S. Khehar", "Kurian Joseph", "R.F. Nariman", "U.U. Lalit", "S. Abdul Nazeer"],
-    petitioner: "Shayara Bano",
-    respondent: "Union of India",
-    key_points: [
-      "Triple talaq (talaq-e-biddat) was declared unconstitutional by a 3:2 majority.",
-      "The practice was found to be arbitrary and gender discriminatory.",
-      "Personal laws must conform to constitutional principles and fundamental rights.",
-      "The judgment led to the enactment of the Muslim Women (Protection of Rights on Marriage) Act, 2019."
-    ],
-    related_cases: [
-      "Shah Bano Begum v. Mohammad Ahmed Khan (1985)",
-      "Danial Latifi v. Union of India (2001)",
-      "Shamim Ara v. State of U.P. (2002)"
-    ]
+    judges: ["J.S. Khehar", "Kurian Joseph", "R.F. Nariman", "U.U. Lalit", "S. Abdul Nazeer"]
   },
   {
-    id: "mohori-bibee",
-    title: "Mohori Bibee vs Dharmodas Ghose",
-    citation: "(1903) ILR 30 Cal 539",
-    court: "Privy Council",
-    date: "March 18, 1903",
-    category: "Contract",
-    summary: "This landmark case established that a contract with a minor is void ab initio (invalid from the beginning) and cannot be enforced, setting a significant precedent in contract law.",
-    judges: ["Lord Macnaghten", "Lord Davey", "Lord Lindley", "Sir Ford North", "Sir Andrew Scoble"],
-    petitioner: "Mohori Bibee",
-    respondent: "Dharmodas Ghose",
-    key_points: [
-      "A minor's contract is void ab initio, not merely voidable.",
-      "The doctrine of restitution does not apply to minors to restore benefits received under void contracts.",
-      "A minor cannot be compelled to repay the money advanced to him under a void contract.",
-      "The principle of estoppel cannot be applied against a minor to validate a void contract."
-    ],
-    related_cases: [
-      "Leslie v. Shiell (1914)",
-      "Khan Gul v. Lakha Singh (1928)",
-      "Srikakulam Subrahmanyam v. Kurra Subba Rao (1948)"
-    ],
-    full_text: "The plaintiff, who was at all material times a minor, mortgaged his house in favor of the defendant's firm to secure the repayment of Rs. 20,000. At the time of the execution of the mortgage, the plaintiff's mother and guardian had informed the defendant's attorney that the plaintiff was a minor. The plaintiff received only Rs. 8,000 from the loan. Later, he sued for a declaration that the mortgage was void and he was not liable for the money borrowed.\n\nThe Privy Council held that the contract was void ab initio as the plaintiff was a minor at the time of contracting. Section 11 of the Indian Contract Act, 1872 clearly provided that a person who had not attained the age of majority was incompetent to contract. The Privy Council ruled that a contract by a minor was void and not merely voidable. It further held that the principle of restitution did not apply to minors, and thus the minor plaintiff could not be compelled to repay the money advanced to him under the void contract.\n\nThis landmark judgment established the principle that a minor's agreement is void ab initio in Indian contract law, a principle that continues to be followed to this day."
+    id: "indian-young-lawyers",
+    title: "Indian Young Lawyers Association vs The State of Kerala",
+    citation: "(2019) 11 SCC 1",
+    court: "Supreme Court of India",
+    date: "September 28, 2018",
+    category: "Constitutional",
+    summary: "The Supreme Court lifted the ban on women of menstruating age from entering the Sabarimala Temple, stating that discrimination against women on the basis of physiological factors cannot be justified."
+  },
+  {
+    id: "subhash-kashinath",
+    title: "Subhash Kashinath Mahajan vs State of Maharashtra",
+    citation: "(2018) 6 SCC 454",
+    court: "Supreme Court of India",
+    date: "March 20, 2018",
+    category: "Criminal",
+    summary: "The Supreme Court issued guidelines to prevent misuse of the SC/ST Act, but later recalled its directions after widespread protests and review petition."
+  },
+  {
+    id: "joseph-shine",
+    title: "Joseph Shine vs Union of India",
+    citation: "(2019) 3 SCC 39",
+    court: "Supreme Court of India",
+    date: "September 27, 2018",
+    category: "Criminal",
+    summary: "The Supreme Court struck down Section 497 of the IPC, decriminalizing adultery, stating that it violated women's right to equality and dignity by treating them as property of their husbands."
+  },
+  {
+    id: "m-nagraj",
+    title: "M. Nagaraj & Others vs Union of India",
+    citation: "(2006) 8 SCC 212",
+    court: "Supreme Court of India",
+    date: "October 19, 2006",
+    category: "Constitutional",
+    summary: "The Court upheld the constitutional validity of reservation in promotions for SC/STs subject to certain conditions, including quantifiable data on backwardness and inadequacy of representation."
+  },
+  {
+    id: "mohd-ahmed-khan",
+    title: "Mohd. Ahmed Khan vs Shah Bano Begum",
+    citation: "AIR 1985 SC 945",
+    court: "Supreme Court of India",
+    date: "April 23, 1985",
+    category: "Family",
+    summary: "The Supreme Court held that a Muslim woman is entitled to maintenance under Section 125 of the CrPC beyond the iddat period, sparking nationwide discourse on personal laws vs. constitutional rights."
+  },
+  {
+    id: "adc-vs-commissioner",
+    title: "ADM Jabalpur vs Shivakant Shukla",
+    citation: "AIR 1976 SC 1207",
+    court: "Supreme Court of India",
+    date: "April 28, 1976",
+    category: "Constitutional",
+    summary: "During the Emergency, the Court held that fundamental rights including the right to life could be suspended during National Emergency, a decision later overruled in K.S. Puttaswamy case."
+  },
+  {
+    id: "sr-bommai",
+    title: "S.R. Bommai vs Union of India",
+    citation: "(1994) 3 SCC 1",
+    court: "Supreme Court of India",
+    date: "March 11, 1994",
+    category: "Constitutional",
+    summary: "This landmark judgment laid down guidelines for the exercise of presidential power under Article 356 to impose President's Rule in states, establishing judicial review of such decisions."
+  },
+  {
+    id: "minerva-mills",
+    title: "Minerva Mills Ltd. vs Union of India",
+    citation: "AIR 1980 SC 1789",
+    court: "Supreme Court of India",
+    date: "July 31, 1980",
+    category: "Constitutional",
+    summary: "The Court reaffirmed the basic structure doctrine and struck down sections of the 42nd Amendment that had tried to give unlimited amending powers to Parliament."
+  },
+  {
+    id: "rupa-ashok-hurra",
+    title: "Rupa Ashok Hurra vs Ashok Hurra",
+    citation: "(2002) 4 SCC 388",
+    court: "Supreme Court of India",
+    date: "April 10, 2002",
+    category: "Constitutional",
+    summary: "The Court established the 'curative petition' as a remedy to challenge the final judgment of the Supreme Court after the dismissal of a review petition."
+  },
+  {
+    id: "bachan-singh",
+    title: "Bachan Singh vs State of Punjab",
+    citation: "(1980) 2 SCC 684",
+    court: "Supreme Court of India",
+    date: "May 9, 1980",
+    category: "Criminal",
+    summary: "The Court upheld the constitutional validity of death penalty, but restricted its application to the 'rarest of rare cases' where the alternative of life imprisonment is unquestionably foreclosed."
+  },
+  {
+    id: "common-cause",
+    title: "Common Cause (A Registered Society) vs Union of India",
+    citation: "(2018) 5 SCC 1",
+    court: "Supreme Court of India",
+    date: "March 9, 2018",
+    category: "Constitutional",
+    summary: "The Supreme Court recognized passive euthanasia and the legal validity of 'Advance Directives' or living wills for terminally ill patients."
+  },
+  {
+    id: "secretary-ministry",
+    title: "Secretary, Ministry of Defence vs Babita Puniya",
+    citation: "(2020) 7 SCC 469",
+    court: "Supreme Court of India",
+    date: "February 17, 2020",
+    category: "Constitutional",
+    summary: "The Court directed that women officers in the Indian Army be granted permanent commission on par with male officers, ending gender discrimination in army appointments."
+  },
+  {
+    id: "ayodhya-case",
+    title: "M Siddiq vs Mahant Suresh Das (Ayodhya Case)",
+    citation: "(2020) 1 SCC 1",
+    court: "Supreme Court of India",
+    date: "November 9, 2019",
+    category: "Civil",
+    summary: "In this historic verdict, the Court directed that the disputed land in Ayodhya be given for the construction of a temple, while alternate land be provided for a mosque."
+  },
+  {
+    id: "nalsa",
+    title: "National Legal Services Authority vs Union of India",
+    citation: "(2014) 5 SCC 438",
+    court: "Supreme Court of India",
+    date: "April 15, 2014",
+    category: "Constitutional",
+    summary: "The Court recognized transgender persons as a 'third gender' and affirmed their fundamental rights under the Constitution of India."
+  },
+  {
+    id: "lily-thomas",
+    title: "Lily Thomas vs Union of India",
+    citation: "(2013) 7 SCC 653",
+    court: "Supreme Court of India",
+    date: "July 10, 2013",
+    category: "Constitutional",
+    summary: "The Court struck down Section 8(4) of the Representation of People Act which allowed convicted MPs/MLAs to continue in office pending appeal, leading to immediate disqualification upon conviction."
   }
 ];
