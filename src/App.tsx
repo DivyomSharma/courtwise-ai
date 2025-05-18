@@ -16,6 +16,10 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Explore from "./pages/Explore";
 import LandmarkCases from "./pages/LandmarkCases";
 
+// Import the new routes
+import KanoonSearch from "./pages/KanoonSearch";
+import KanoonDocumentView from "./pages/KanoonDocumentView";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,6 +39,11 @@ const App = () => (
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            
+            {/* Indian Kanoon routes */}
+            <Route path="/kanoon" element={<KanoonSearch />} />
+            <Route path="/kanoon/doc/:docId" element={<KanoonDocumentView />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

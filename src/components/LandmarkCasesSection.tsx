@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +8,25 @@ import { Loader2 } from 'lucide-react';
 import { LANDMARK_CASES } from '@/utils/landmarkCasesData';
 
 const LandmarkCasesSection = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Use first 6 landmark cases for display on homepage
-  const displayCases = LANDMARK_CASES.slice(0, 6);
+  const [displayCases, setDisplayCases] = useState(LANDMARK_CASES.slice(0, 6));
+
+  useEffect(() => {
+    // Simulate loading of cases
+    const timer = setTimeout(() => {
+      setDisplayCases(LANDMARK_CASES.slice(0, 6));
+      setLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   return (
     <div id="landmark-cases" className="py-10">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-2 md:space-y-0">
           <div>
             <h2 className="text-2xl font-serif font-bold mb-2">Landmark Cases</h2>
             <p className="text-muted-foreground">Historic and influential court rulings that shaped Indian law</p>
